@@ -1,30 +1,33 @@
-
 import os
+import logging
 
 from langchain_core.agents import AgentAction
 from langchain_openai import ChatOpenAI
 from langchain_core.agents import AgentAction
 from langgraph.graph import StateGraph, END
 
-import tools
-import prompts
+import agents.tools as mytools
+import agents.prompts as myprompts
 
 class SimpleAgent:
     def __init__(self):
+        self.runnable = None
+        self.graph = None
+        
         self.llm = ChatOpenAI(
-            model="gpt-4",
+            model="gpt-4o-mini",
             openai_api_key=os.environ["OPENAI_API_KEY"],
             temperature=0
         )
         
         self.tools = [
-            tools.web_search,
-            tools.final_answer
+            mytools.web_search,
+            mytools.final_answer
         ]
         
         self.tool_str_to_func = {
-            "web_search": tools.web_search,
-            "final_answer": tools.final_answer
+            "web_search": mytools.web_search,
+            "final_answer": mytools.final_answer
         }
 
         self.oracle = (
@@ -35,7 +38,7 @@ class SimpleAgent:
                     intermediate_steps=x["intermediate_steps"]
                 ),
             }
-            | prompts.prompt
+            | myprompts.prompt
             | self.llm.bind_tools(self.tools, tool_choice="any")
         )
 
@@ -54,8 +57,8 @@ class SimpleAgent:
 
 
     def run_oracle(self, state: list):
-        print("run_oracle")
-        print(f"intermediate_steps: {state['intermediate_steps']}")
+        logging.info("run_oracle")
+        logging.info(f"intermediate_steps: {state['intermediate_steps']}")
         out = self.oracle.invoke(state)
         tool_name = out.tool_calls[0]["name"]
         tool_args = out.tool_calls[0]["args"]
@@ -74,7 +77,7 @@ class SimpleAgent:
             return state["intermediate_steps"][-1].tool
         else:
             # if we output bad format go to final answer
-            print("Router invalid format")
+            logging.info("Router invalid format")
             return "final_answer"
 
 
@@ -82,7 +85,7 @@ class SimpleAgent:
         # use this as helper function so we repeat less code
         tool_name = state["intermediate_steps"][-1].tool
         tool_args = state["intermediate_steps"][-1].tool_input
-        print(f"{tool_name}.invoke(input={tool_args})")
+        logging.info(f"{tool_name}.invoke(input={tool_args})")
         # run tool
         out = self.tool_str_to_func[tool_name].invoke(input=tool_args)
         action_out = AgentAction(
@@ -93,7 +96,7 @@ class SimpleAgent:
         return {"intermediate_steps": [action_out]}
 
     def setup(self): 
-        graph = StateGraph(tools.AgentState)
+        graph = StateGraph(mytools.AgentState)
 
         graph.add_node("oracle", self.run_oracle)
         graph.add_node("web_search", self.run_tool)
@@ -114,7 +117,8 @@ class SimpleAgent:
         # if anything goes to final answer, it must then move to END
         graph.add_edge("final_answer", END)
 
-        runnable = graph.compile()
+        self.graph = graph
+        self.runnable = graph.compile()
 
     @staticmethod
     def build_report(output: dict):
@@ -127,6 +131,7 @@ class SimpleAgent:
         return f"""
     INTRODUCTION
     ------------
+    
     {output["introduction"]}
 
     RESEARCH STEPS

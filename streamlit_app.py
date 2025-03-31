@@ -1,20 +1,28 @@
 from dotenv import load_dotenv
 import streamlit as st
-from agent import SimpleAgent
+from agents.simpleagent import SimpleAgent
+from PIL import Image
 
-load_dotenv()
+
+st.title("🎈 Sierge PoC chatbot")
+st.info('Setting up the agent...', icon="ℹ️")
 
 # Initialize the agent
+load_dotenv()
+
 agent = SimpleAgent()
 agent.setup()
 
-st.title("🎈 Version 2.x")
-st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
-)
+st.info('Agent setup complete!', icon="ℹ️")
+img = agent.runnable.get_graph().draw_png()
+st.image(img)
+st.divider()
 
 # Example query
 query = "tell me some nice vegan places in Dallas"
+
+st.info(f"Running the agent with the query:\n{query}", icon="ℹ️")
+
 result = agent.runnable.invoke({
     "input": query,
     "chat_history": [],

@@ -38,16 +38,17 @@ search = GoogleSearch({
 def web_search(query: str):
     """Finds general knowledge information using Google search. Can also be used
     to augment more 'general' knowledge to a previous specialist query."""
-    search = GoogleSearch({
-        **serpapi_params,
-        "q": query,
-        "num": 5
-    })
-    results = search.get_dict()["organic_results"]
-    contexts = "\n---\n".join(
-        ["\n".join([x["title"], x["snippet"], x["link"]]) for x in results]
-    )
-    return contexts
+    # search = GoogleSearch({
+    #     **serpapi_params,
+    #     "q": query,
+    #     "num": 5
+    # })
+    # results = search.get_dict()["organic_results"]
+    # contexts = "\n---\n".join(
+    #     ["\n".join([x["title"], x["snippet"], x["link"]]) for x in results]
+    # )
+    # return contexts
+    return "The Best Vegan Restaurants Around Dallas\nThe Best Vegan Restaurants Around Dallas · Recipe Oak Cliff · Spiral Diner & Bakery · Maiden · Casa Del Vegano · Vegan Food House · El Palote ...\nhttps://dallas.eater.com/maps/dallas-best-vegan-restaurants\n---\nThe Best Vegan Restaurants in Dallas: Our Picks\nVegan Spots in Dallas · Casa Del Vegano · Kalachandjis · HG Sply Co. · HopeBoy's Kitchen · Recipe Oak Cliff · Vegan Food House · Vegan Food House · Related ...\nhttps://www.visitdallas.com/blog/vegan-spots-in-dallas/\n---\nNice restaurants with good vegan options? : r/Dallas\nResident Taqueria in Lake Highlands has some solid vegan options they can make all their veggie tacos vegan. Just let the staff know, and they ...\nhttps://www.reddit.com/r/Dallas/comments/1ebgzu9/nice_restaurants_with_good_vegan_options/\n---\nVegetarian Friendly Dallas, TX - Last Updated March 2025\n1. il Bracco · 2. Casa del Vegano · 3. D'Vegan · 4. Sixty Vines · 5. Haywire · 6. True Food Kitchen · 7. Postino Addison · 8. Flower Child.\nhttps://www.yelp.com/search?find_desc=Vegetarian+Friendly&find_loc=Dallas%2C+TX\n---\nVegetarian-Vegan | Restaurants\nVegetarian-Vegan · Kalachandji's · Tiki Loco · Vegan Food House · Seven Mile Cafe · Gopal Vegetarian · Udipi Cafe · Loving Hut · D'Vegan.\nhttps://directory.dmagazine.com/search/?sections=Restaurants&categories=Vegetarian-Vegan"
 
 
 @tool("final_answer")
