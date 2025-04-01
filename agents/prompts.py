@@ -17,7 +17,6 @@ tool."""
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", system_prompt),
-    MessagesPlaceholder(variable_name="chat_history"),
     ("user", "{input}"),
     ("assistant", "scratchpad: {scratchpad}"),
 ])

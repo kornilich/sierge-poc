@@ -17,7 +17,6 @@ serpapi_params = {
 
 class AgentState(TypedDict):
     input: str
-    chat_history: list[BaseMessage]
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
 
 

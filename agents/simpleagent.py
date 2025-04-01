@@ -33,7 +33,6 @@ class SimpleAgent:
         self.oracle = (
             {
                 "input": lambda x: x["input"],
-                "chat_history": lambda x: x["chat_history"],
                 "scratchpad": lambda x: self.create_scratchpad(
                     intermediate_steps=x["intermediate_steps"]
                 ),
@@ -41,6 +40,8 @@ class SimpleAgent:
             | myprompts.prompt
             | self.llm.bind_tools(self.tools, tool_choice="any")
         )
+        
+        return
 
     # define a function to transform intermediate_steps from list
     # of AgentAction to scratchpad string
@@ -98,21 +99,21 @@ class SimpleAgent:
     def setup(self): 
         graph = StateGraph(mytools.AgentState)
 
-        graph.add_node("oracle", self.run_oracle)
+        graph.add_node("agent", self.run_oracle)
         graph.add_node("web_search", self.run_tool)
         graph.add_node("final_answer", self.run_tool)
 
-        graph.set_entry_point("oracle")
+        graph.set_entry_point("agent")
 
         graph.add_conditional_edges(
-            source="oracle",  # where in graph to start
+            source="agent",  # where in graph to start
             path=self.router,  # function to determine which node is called
         )
 
         # create edges from each tool back to the oracle
         for tool_obj in self.tools:
             if tool_obj.name != "final_answer":
-                graph.add_edge(tool_obj.name, "oracle")
+                graph.add_edge(tool_obj.name, "agent")
 
         # if anything goes to final answer, it must then move to END
         graph.add_edge("final_answer", END)
