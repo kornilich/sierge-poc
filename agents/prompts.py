@@ -1,5 +1,23 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
+# https: // github.com/pinecone-io/examples/blob/master/learn/generation/langchain/langgraph/01-gpt-4o-research-agent.ipynb
+
+system_agent_description = """
+You are an expert travel advisor and consultant based in Dallas, USA with extensive local knowledge of the city and surrounding areas. 
+Your primary purpose is to provide personalized travel recommendations for Dallas visitors that precisely match each user's unique preferences, constraints, and situation.
+"""
+
+system_agent_web_search = """
+Use web_search tool find places of each kind. 
+"""
+system_agent_summarize = """
+Summarize the results of the web search.
+
+Return results in form of table with name, rank, description, address, rating, and link to the place.
+Rank is a number from 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences.
+"""
+
+#####
 
 system_prompt = """You are the oracle, the great AI decision maker.
 Given the user's query you must decide what to do with it based on the
@@ -20,4 +38,3 @@ prompt = ChatPromptTemplate.from_messages([
     ("user", "{input}"),
     ("assistant", "scratchpad: {scratchpad}"),
 ])
-

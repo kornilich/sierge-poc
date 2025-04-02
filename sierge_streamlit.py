@@ -1,7 +1,9 @@
 from dotenv import load_dotenv
 import streamlit as st
 from agents.simpleagent import SimpleAgent
+from agents.testagent import TestAgent
 from PIL import Image
+from langchain_core.messages import HumanMessage
 
 # Initialize the agent
 
@@ -49,7 +51,7 @@ contextual_preferences, fixed_preferences = streamlit_config()
 
 load_dotenv()
 
-agent = SimpleAgent()
+agent = TestAgent()
 agent.setup()
 
 
@@ -57,15 +59,16 @@ agent.setup()
 chat_input = st.chat_input("Describe your situational preferences here...")
 
 if chat_input:
-    query = f"{contextual_preferences} and {fixed_preferences}. I have following situation {chat_input}. I'm looking for a place to go to."
+    query = f"{fixed_preferences} and {contextual_preferences}. I have following situation {chat_input}"
     
-    result = agent.runnable.invoke({
-        "input": query,
-    })
+    messages = [HumanMessage(content=query)]
+    result = agent.runnable.invoke({"messages": messages})
 
-    st.write(SimpleAgent.build_report(
-        output=result["intermediate_steps"][-1].tool_input
-    ))
+    # st.write(SimpleAgent.build_report(
+    #     output=result["intermediate_steps"][-1].tool_input
+    # ))
+
+    st.write(result["messages"][-1].content)
 
     with st.chat_message("assistant"):
         st.write(chat_input)
