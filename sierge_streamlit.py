@@ -1,5 +1,8 @@
-import pandas as pd
-from datetime import datetime, timedelta
+# import pandas as pd
+# from datetime import datetime, timedelta
+# from PIL import Image
+# from langsmith import Client as LangsmithClient
+
 from dotenv import load_dotenv
 import streamlit as st
 import inspect
@@ -7,47 +10,42 @@ import os
 from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ctx
 from agents.simpleagent import SimpleAgent
-from agents.testagent import TestAgent
-from PIL import Image
 from langchain.callbacks.streamlit import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, ToolMessage
-from langsmith import Client as LangsmithClient
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from typing import TypeVar, Callable
-import agents.prompts as myprompts
+import agents.prompts as prmt
 import json
 
-# Initialize the agent
 
 def streamlit_config():
     st.set_page_config(page_title='Sierge PoC', layout='wide')
-    
+
     with st.sidebar:
-        with st.form("preferences"):
+        with st.expander("Preferences"):
             contextual_preferences = st.text_area(
                 ":orange[**Contextual Preferences**]",
-                value="""I'm going with my family. 
-Looking for a place with:
-Atmosphere: Casual, child-friendly, well-lit
-Alcohol: Limited or non-alcoholic options
-Meals: Family-style sharing platters
-Noise level: Moderate, tolerant of children's sounds"""
-                , height=72*3)
+                value=prmt.contextual_preferences_default, height=72*3)
             fixed_preferences = st.text_area(
                 ":orange[**Fixed Preferences**]",
-                value="""I'm from Dallas city, 21 years old, single woman.
-I love dancing, and prefer vegan food.
-Love meeting people but not noisy places.
-I'm a new resident in Dallas."""
-                , height=72*3)
-            submitted = st.form_submit_button(
-                "Submit", type="primary", use_container_width=True)
+                value=prmt.fixed_preferences_default, height=72*3)
+
+        with st.expander("Instructions"):
+            agent_description = st.text_area(
+                ":orange[**Agent description**]",
+                value=prmt.system_agent_description, height=72*3)
+            tools_instructions = st.text_area(
+                ":orange[**Tools instructions**]",
+                value=prmt.system_tools_instructions, height=72*3)
+            summarize_instructions = st.text_area(
+                ":orange[**Summarize instructions**]",
+                value=prmt.system_agent_summarize, height=72*3)
 
         with st.expander("Agent settings"):
             model = st.selectbox('Model', ('gpt-4o-mini'))
             web_search = st.selectbox('Web search', ('serpapi'))
-            
+
     col1, col2 = st.columns([1, 5])
     with col1:
         st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
@@ -55,8 +53,10 @@ I'm a new resident in Dallas."""
     with col2:
         st.header(":blue[Sierge PoC]")
         st.write("Tailor recommendations in real time based on logistics, constraints, and external conditions like time availability, budget, location, and weather. They ensure that experiences are practical, feasible, and aligned with current circumstances without altering core user preferences.")
-        
-    return contextual_preferences, fixed_preferences
+
+    return contextual_preferences, fixed_preferences, agent_description, tools_instructions, summarize_instructions, model
+
+# Progress callback wrapper
 
 
 def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
@@ -78,24 +78,28 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             setattr(st_cb, method_name, add_streamlit_context(method_func))
     return st_cb
 
-contextual_preferences, fixed_preferences = streamlit_config()
 
-load_dotenv()
+def load_environment():
+    load_dotenv()
 
-# Set environment variables from streamlit secrets
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-os.environ["SERPAPI_KEY"] = st.secrets["SERPAPI_KEY"]
-os.environ["LANGSMITH_TRACING"] = st.secrets["LANGSMITH_TRACING"]
-os.environ["LANGSMITH_ENDPOINT"] = st.secrets["LANGSMITH_ENDPOINT"] 
-os.environ["LANGSMITH_API_KEY"] = st.secrets["LANGSMITH_API_KEY"]
-os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
+    # Set environment variables from streamlit secrets
+    os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+    os.environ["SERPAPI_KEY"] = st.secrets["SERPAPI_KEY"]
+    os.environ["LANGSMITH_TRACING"] = st.secrets["LANGSMITH_TRACING"]
+    os.environ["LANGSMITH_ENDPOINT"] = st.secrets["LANGSMITH_ENDPOINT"]
+    os.environ["LANGSMITH_API_KEY"] = st.secrets["LANGSMITH_API_KEY"]
+    os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
 
 
-agent = TestAgent()
+contextual_preferences, fixed_preferences, agent_description, tools_instructions, summarize_instructions, model = streamlit_config()
+
+load_environment()
+
+agent = SimpleAgent(agent_description, tools_instructions,
+                    summarize_instructions, model)
 agent.setup()
 
 
-# I want to stat in the morning, take a look at some sight-seen and then get to restaurant 
 chat_input = st.chat_input("Describe your situational preferences here...")
 
 if chat_input:
@@ -103,17 +107,18 @@ if chat_input:
     st_callback = StreamlitCallbackHandler(output_container)
     config = {"callbacks": [st_callback]}
 
-    query = f"{fixed_preferences} \n\n {contextual_preferences} \n\n I have following situation {chat_input}"
-    
+    query = f"{fixed_preferences} \n\n {contextual_preferences} \n\n {chat_input}"
+
     with st.chat_message("human"):
-        with st.expander("Asking LLM", expanded=True): 
+        with st.expander("Asking LLM", expanded=True):
             st.write(query)
-    
+
     with st.spinner("Running agent...", show_time=True):
         messages = [HumanMessage(content=query)]
-        result = agent.runnable.invoke({"messages": messages}, )
-                                    #    config={"callbacks": [get_streamlit_cb(st.empty())]})
-    
+        result = {"messages": [HumanMessage(content=query)]}
+        # result = agent.runnable.invoke({"messages": messages}, )
+        #    config={"callbacks": [get_streamlit_cb(st.empty())]})
+
     for msg in result["messages"]:
         if isinstance(msg, HumanMessage):
             pass
@@ -125,7 +130,7 @@ if chat_input:
                         if fn["name"] == "web_search":
                             query = json.loads(fn["arguments"])
                             query_text = query.get("query", "")
-                            
+
                             st.markdown(f"**Searching:** {query_text}")
                         else:
                             st.write(msg.content)
@@ -135,10 +140,13 @@ if chat_input:
         elif isinstance(msg, ToolMessage):
             if msg.name == "web_search":
                 with st.chat_message("Search resutls", avatar=":material/manage_search:"):
-                    st.expander("Search results").json(msg.content, expanded=False)
+                    st.expander("Search results").json(
+                        msg.content, expanded=False)
             else:
                 st.write(msg)
-            
+        else:
+            st.write(msg)
+
     # start_time = datetime.now() - timedelta(days=1)
     # smithClient = LangsmithClient()
     # runs = list(
@@ -149,25 +157,14 @@ if chat_input:
     #         is_root=True,
     #     )
     # )
-
-    # st.write(result["messages"][-1].content)
- 
-
-    # st.write(SimpleAgent.build_report(
-    #     output=result["intermediate_steps"][-1].tool_input
-    # ))
-        
-else:
+else:  # Default page view
     col1, col2 = st.columns([2, 2])
     img = agent.runnable.get_graph().draw_png()
     with col1:
-        st.image(img, width=400, caption="Agentic AI based venue recommendation")
+        st.image(img, width=400, caption="Agent architecture")
     with col2:
         st.subheader(":gray[Agent description]")
-        st.write(myprompts.system_agent_description)
-        st.write(myprompts.system_agent_web_search)
+        st.write(agent_description)
+        st.write(tools_instructions)
         st.subheader(":gray[Summarize prompt]")
-        st.write(myprompts.system_agent_summarize)
-
-
-
+        st.write(summarize_instructions)

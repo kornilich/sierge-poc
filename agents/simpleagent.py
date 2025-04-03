@@ -1,168 +1,136 @@
 import os
-import logging
 
-from langchain_core.agents import AgentAction
 from langchain_openai import ChatOpenAI
-from langchain_core.agents import AgentAction
-from langgraph.graph import StateGraph, END
+from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, ToolMessage
+from langgraph.graph import StateGraph
+from langgraph.graph import START, END
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import MessagesState
 
 import agents.tools as mytools
-import agents.prompts as myprompts
+import agents.prompts as prmt
 
 class SimpleAgent:
-    def __init__(self):
-        self.runnable = None
-        self.graph = None
+    def __init__(self, agent_description=None, tools_instructions=None, summarize_instructions=None, gpt_model=None):
+        self.agent_description = agent_description
+        self.tools_instructions = tools_instructions
+        self.summarize_instructions = summarize_instructions
+        self.gpt_model = gpt_model
         
         self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
+            model=self.gpt_model,
             openai_api_key=os.environ["OPENAI_API_KEY"],
-            temperature=0
+            temperature=0,
+            streaming=True
+        )
+        
+        self.llm_summarize = ChatOpenAI(
+            model=self.gpt_model,
+            openai_api_key=os.environ["OPENAI_API_KEY"],
+            temperature=0,
+            streaming=True
         )
         
         self.tools = [
             mytools.web_search,
-            mytools.final_answer
         ]
         
-        self.tool_str_to_func = {
-            "web_search": mytools.web_search,
-            "final_answer": mytools.final_answer
-        }
-
-        self.oracle = (
-            {
-                "input": lambda x: x["input"],
-                "scratchpad": lambda x: self.create_scratchpad(
-                    intermediate_steps=x["intermediate_steps"]
-                ),
-            }
-            | myprompts.prompt
-            | self.llm.bind_tools(self.tools, tool_choice="any")
-        )
+        self.tools_node = ToolNode(self.tools)
         
-        return
+        self.agent_node = self.llm.bind_tools(self.tools, tool_choice="any")
 
-    # define a function to transform intermediate_steps from list
-    # of AgentAction to scratchpad string
-    def create_scratchpad(self, intermediate_steps: list[AgentAction]):
-        research_steps = []
-        for i, action in enumerate(intermediate_steps):
-            if action.log != "TBD":
-                # this was the ToolExecution
-                research_steps.append(
-                    f"Tool: {action.tool}, input: {action.tool_input}\n"
-                    f"Output: {action.log}"
-                )
-        return "\n---\n".join(research_steps)
+    def agent_call(self, state: MessagesState):
+        """LLM decides whether to call a tool or not"""
+        
+        web_search_count = 0
+        for msg in state["messages"]:
+            if isinstance(msg, AIMessage):
+                for call in msg.additional_kwargs["tool_calls"]:
+                    if call["function"]["name"] == "web_search":
+                        web_search_count += 1
+        
+        if web_search_count > 1:
+            return {"messages": state["messages"] +
+                    [AIMessage(content="Maximum Web Search calls reached. Stopping.")]}
 
-
-    def run_oracle(self, state: list):
-        logging.info("run_oracle")
-        logging.info(f"intermediate_steps: {state['intermediate_steps']}")
-        out = self.oracle.invoke(state)
-        tool_name = out.tool_calls[0]["name"]
-        tool_args = out.tool_calls[0]["args"]
-        action_out = AgentAction(
-            tool=tool_name,
-            tool_input=tool_args,
-            log="TBD"
-        )
         return {
-            "intermediate_steps": [action_out]
+            "messages": [
+                self.agent_node.invoke(
+                    [
+                        SystemMessage(
+                            content=(self.agent_description) + "\n" + 
+                                    (self.tools_instructions)
+                        )
+                    ]
+                    + state["messages"]
+                )
+            ]
+        }
+        
+    def summarize(self, state: MessagesState):
+        search_results = []
+        for msg in state["messages"]:
+            if isinstance(msg, ToolMessage):
+                search_results.append({"call_id": msg.tool_call_id, "content": msg.content})
+                
+        new_messages = []
+        human_message = None
+        for msg in state["messages"]:
+            if isinstance(msg, HumanMessage):
+                human_message = msg.content
+            else:
+                new_messages.append(msg)
+
+        new_messages.append(HumanMessage(
+            content=human_message + "\n" + self.summarize_instructions))
+        # new_messages.append(AIMessage(content=json.dumps(search_results)))
+       
+        return {
+            "messages": [
+                self.llm_summarize.invoke(
+                    [
+                        SystemMessage(
+                            content=self.agent_description
+                        )
+                    ]
+                    + new_messages
+                )
+            ]
         }
 
-    def router(self, state: list):
-        # return the tool name to use
-        if isinstance(state["intermediate_steps"], list):
-            return state["intermediate_steps"][-1].tool
-        else:
-            # if we output bad format go to final answer
-            logging.info("Router invalid format")
-            return "final_answer"
+    def should_continue(self, state: MessagesState):
+        """Determine whether to continue to tools or end"""
+        last_message = state["messages"][-1]
+                
+        if "tool_calls" in last_message.additional_kwargs:
+            return "Search"
+        else:        
+            return "Results"
 
-
-    def run_tool(self, state: list):
-        # use this as helper function so we repeat less code
-        tool_name = state["intermediate_steps"][-1].tool
-        tool_args = state["intermediate_steps"][-1].tool_input
-        logging.info(f"{tool_name}.invoke(input={tool_args})")
-        # run tool
-        out = self.tool_str_to_func[tool_name].invoke(input=tool_args)
-        action_out = AgentAction(
-            tool=tool_name,
-            tool_input=tool_args,
-            log=str(out)
-        )
-        return {"intermediate_steps": [action_out]}
 
     def setup(self): 
-        graph = StateGraph(mytools.AgentState)
+        graph = StateGraph(state_schema=MessagesState)
 
-        graph.add_node("agent", self.run_oracle)
-        graph.add_node("web_search", self.run_tool)
-        graph.add_node("final_answer", self.run_tool)
-
-        graph.set_entry_point("agent")
+        graph.add_edge(START, "Agent")
+        
+        graph.add_node("Agent", self.agent_call)
+        graph.add_node("Web", self.tools_node)
+        graph.add_node("Summarize", self.summarize)
+        graph.set_entry_point("Agent")
 
         graph.add_conditional_edges(
-            source="agent",  # where in graph to start
-            path=self.router,  # function to determine which node is called
+            "Agent",
+            self.should_continue,
+            {
+                "Search": "Web",
+                "Results": "Summarize",
+            },
         )
-
-        # create edges from each tool back to the oracle
-        for tool_obj in self.tools:
-            if tool_obj.name != "final_answer":
-                graph.add_edge(tool_obj.name, "agent")
-
-        # if anything goes to final answer, it must then move to END
-        graph.add_edge("final_answer", END)
-
+        
+        graph.add_edge("Web", "Agent")
+        graph.add_edge("Summarize", END)
+        
         self.graph = graph
         self.runnable = graph.compile()
 
-    @staticmethod
-    def build_report(output: dict):
-        research_steps = output["research_steps"]
-        if type(research_steps) is list:
-            research_steps = "\n".join([f"- {r}" for r in research_steps])
-        sources = output["sources"]
-        if type(sources) is list:
-            sources = "\n".join([f"- {s}" for s in sources])
-        return f"""
-    INTRODUCTION
-    ------------
     
-    {output["introduction"]}
-
-    RESEARCH STEPS
-    --------------
-    {research_steps}
-
-    REPORT
-    ------
-    {output["main_body"]}
-
-    CONCLUSION
-    ----------
-    {output["conclusion"]}
-
-    SOURCES
-    -------
-    {sources}
-    """
-
-# Image(runnable.get_graph().draw_png())
-
-# out = runnable.invoke({
-#     "input": "tell me some nice vegan places in Dallas",
-#     "chat_history": [],
-# })
-
-
-# inputs = {
-#     "input": "want to visit some nice vegan even in Dallas today",
-#     "chat_history": [],
-#     "intermediate_steps": [],
-# }
-# out = oracle.invoke(inputs)
