@@ -15,6 +15,8 @@ Summarize the results of the web search.
 
 Return results in form of table with name, rank, description, address, rating, and link to the place.
 Rank is a number from 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences.
+
+if you don't have any part of information about the place, just put "n/a" in the table.
 """
 
 #####

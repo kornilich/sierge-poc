@@ -14,8 +14,6 @@ from langgraph.graph import MessagesState
 import agents.tools as mytools
 import agents.prompts as myprompts
 
-
-
 class TestAgent:
     def __init__(self):
         self.runnable = None
@@ -24,13 +22,15 @@ class TestAgent:
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
             openai_api_key=os.environ["OPENAI_API_KEY"],
-            temperature=0
+            temperature=0,
+            streaming=True
         )
         
         self.llm_summarize = ChatOpenAI(
             model="gpt-4o-mini",
             openai_api_key=os.environ["OPENAI_API_KEY"],
-            temperature=0
+            temperature=0,
+            streaming=True
         )
 
         
