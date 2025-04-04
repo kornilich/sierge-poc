@@ -6,16 +6,17 @@ from langgraph.graph import StateGraph
 from langgraph.graph import START, END
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import MessagesState
+from langchain_core.runnables import RunnableConfig
 
 import agents.tools as mytools
 import agents.prompts as prmt
 
 class SimpleAgent:
-    def __init__(self, agent_description=None, tools_instructions=None, summarize_instructions=None, gpt_model=None):
-        self.agent_description = agent_description
-        self.tools_instructions = tools_instructions
-        self.summarize_instructions = summarize_instructions
-        self.gpt_model = gpt_model
+    def __init__(self, settings):
+        self.agent_description = settings["agent_description"]
+        self.tools_instructions = settings["tools_instructions"]
+        self.summarize_instructions = settings["summarize_instructions"]
+        self.gpt_model = settings["model"]
         
         self.llm = ChatOpenAI(
             model=self.gpt_model,
@@ -39,7 +40,8 @@ class SimpleAgent:
         
         self.agent_node = self.llm.bind_tools(self.tools, tool_choice="any")
 
-    def agent_call(self, state: MessagesState):
+    # def agent_node(self, state: MessagesState, config: RunnableConfig):
+    def agent_node(self, state: MessagesState):
         """LLM decides whether to call a tool or not"""
         
         web_search_count = 0
@@ -49,9 +51,9 @@ class SimpleAgent:
                     if call["function"]["name"] == "web_search":
                         web_search_count += 1
         
-        if web_search_count > 1:
-            return {"messages": state["messages"] +
-                    [AIMessage(content="Maximum Web Search calls reached. Stopping.")]}
+        # if web_search_count > config["search_limit"]:
+        #     return {"messages": state["messages"] +
+        #             [AIMessage(content=f"Maximum Web Search calls reached ({config['search_limit']}). Stopping.")]}
 
         return {
             "messages": [
@@ -113,7 +115,7 @@ class SimpleAgent:
 
         graph.add_edge(START, "Agent")
         
-        graph.add_node("Agent", self.agent_call)
+        graph.add_node("Agent", self.agent_node)
         graph.add_node("Web", self.tools_node)
         graph.add_node("Summarize", self.summarize)
         graph.set_entry_point("Agent")

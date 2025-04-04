@@ -13,48 +13,11 @@ from agents.simpleagent import SimpleAgent
 from langchain.callbacks.streamlit import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langchain_core.runnables import RunnableConfig
 
 from typing import TypeVar, Callable
 import agents.prompts as prmt
 import json
-
-
-def streamlit_config():
-    st.set_page_config(page_title='Sierge PoC', layout='wide')
-
-    with st.sidebar:
-        with st.expander("Preferences"):
-            contextual_preferences = st.text_area(
-                ":orange[**Contextual Preferences**]",
-                value=prmt.contextual_preferences_default, height=72*3)
-            fixed_preferences = st.text_area(
-                ":orange[**Fixed Preferences**]",
-                value=prmt.fixed_preferences_default, height=72*3)
-
-        with st.expander("Instructions"):
-            agent_description = st.text_area(
-                ":orange[**Agent description**]",
-                value=prmt.system_agent_description, height=72*3)
-            tools_instructions = st.text_area(
-                ":orange[**Tools instructions**]",
-                value=prmt.system_tools_instructions, height=72*3)
-            summarize_instructions = st.text_area(
-                ":orange[**Summarize instructions**]",
-                value=prmt.system_agent_summarize, height=72*3)
-
-        with st.expander("Agent settings"):
-            model = st.selectbox('Model', ('gpt-4o-mini'))
-            web_search = st.selectbox('Web search', ('serpapi'))
-
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
-                 use_container_width=True)
-    with col2:
-        st.header(":blue[Sierge PoC]")
-        st.write("Tailor recommendations in real time based on logistics, constraints, and external conditions like time availability, budget, location, and weather. They ensure that experiences are practical, feasible, and aligned with current circumstances without altering core user preferences.")
-
-    return contextual_preferences, fixed_preferences, agent_description, tools_instructions, summarize_instructions, model
 
 # Progress callback wrapper
 
@@ -91,23 +54,71 @@ def load_environment():
     os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
 
 
-contextual_preferences, fixed_preferences, agent_description, tools_instructions, summarize_instructions, model = streamlit_config()
+def streamlit_config():
+    st.set_page_config(page_title='Sierge PoC', layout='wide')
+
+    with st.sidebar:
+        with st.expander("Preferences"):
+            contextual_preferences = st.text_area(
+                ":orange[**Contextual Preferences**]",
+                value=prmt.contextual_preferences_default, height=72*3)
+            fixed_preferences = st.text_area(
+                ":orange[**Fixed Preferences**]",
+                value=prmt.fixed_preferences_default, height=72*3)
+
+        with st.expander("Instructions"):
+            agent_description = st.text_area(
+                ":orange[**Agent description**]",
+                value=prmt.system_agent_description, height=72*3)
+            tools_instructions = st.text_area(
+                ":orange[**Tools instructions**]",
+                value=prmt.system_tools_instructions, height=72*3)
+            summarize_instructions = st.text_area(
+                ":orange[**Summarize instructions**]",
+                value=prmt.system_agent_summarize, height=72*3)
+
+        with st.expander("Agent settings"):
+            model = st.selectbox("Model", ("gpt-4o-mini"))
+            st.selectbox("Web search", ("serpapi"))
+            location = st.selectbox(
+                "Location", ("Dallas, Texas, United States", "Los Angeles, California, United States"))
+            search_limit = st.slider(
+                "Search limit", min_value=0, max_value=20, value=3)
+            number_of_results = st.slider(
+                "Number of results", min_value=5, max_value=20, value=5)
+
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
+                 use_container_width=True)
+    with col2:
+        st.header(":blue[Sierge PoC]")
+        st.write("Tailor recommendations in real time based on logistics, constraints, and external conditions like time availability, budget, location, and weather. They ensure that experiences are practical, feasible, and aligned with current circumstances without altering core user preferences.")
+
+    return {
+        "contextual_preferences": contextual_preferences,
+        "fixed_preferences": fixed_preferences,
+        "agent_description": agent_description,
+        "tools_instructions": tools_instructions,
+        "summarize_instructions": summarize_instructions,
+        "model": model,
+        "location": location,
+        "search_limit": search_limit,
+        "number_of_results": number_of_results
+    }
+
+
+settings = streamlit_config()
 
 load_environment()
 
-agent = SimpleAgent(agent_description, tools_instructions,
-                    summarize_instructions, model)
+agent = SimpleAgent(settings)
 agent.setup()
-
 
 chat_input = st.chat_input("Describe your situational preferences here...")
 
 if chat_input:
-    output_container = st.container()
-    st_callback = StreamlitCallbackHandler(output_container)
-    config = {"callbacks": [st_callback]}
-
-    query = f"{fixed_preferences} \n\n {contextual_preferences} \n\n {chat_input}"
+    query = f"{settings['fixed_preferences']} \n\n {settings['contextual_preferences']} \n\n {chat_input}"
 
     with st.chat_message("human"):
         with st.expander("Asking LLM", expanded=True):
@@ -115,9 +126,19 @@ if chat_input:
 
     with st.spinner("Running agent...", show_time=True):
         messages = [HumanMessage(content=query)]
-        result = {"messages": [HumanMessage(content=query)]}
-        # result = agent.runnable.invoke({"messages": messages}, )
+        # result = {"messages": [HumanMessage(content=query)]}
+        result = agent.runnable.invoke({"messages": messages}, )
         #    config={"callbacks": [get_streamlit_cb(st.empty())]})
+
+        # result = agent.runnable.invoke(
+        #     {"messages": messages},
+            # input={"messages": messages},
+            # config=RunnableConfig({
+            #     "location": settings["location"],
+            #     "search_limit": settings["search_limit"],
+            #     "number_of_results": settings["number_of_results"]
+            # })
+        # )
 
     for msg in result["messages"]:
         if isinstance(msg, HumanMessage):
@@ -164,7 +185,7 @@ else:  # Default page view
         st.image(img, width=400, caption="Agent architecture")
     with col2:
         st.subheader(":gray[Agent description]")
-        st.write(agent_description)
-        st.write(tools_instructions)
+        st.write(settings["agent_description"])
+        st.write(settings["tools_instructions"])
         st.subheader(":gray[Summarize prompt]")
-        st.write(summarize_instructions)
+        st.write(settings["summarize_instructions"])
