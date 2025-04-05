@@ -123,31 +123,31 @@ if chat_input:
     with st.chat_message("human"):
         with st.expander("Asking LLM", expanded=True):
             st.write(query)
+            st.markdown(
+                f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['location']}]" +
+                f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
+            )
 
     with st.spinner("Running agent...", show_time=True):
         messages = [HumanMessage(content=query)]
-        # result = {"messages": [HumanMessage(content=query)]}
-        result = agent.runnable.invoke({"messages": messages}, )
-        #    config={"callbacks": [get_streamlit_cb(st.empty())]})
-
-        # result = agent.runnable.invoke(
-        #     {"messages": messages},
-            # input={"messages": messages},
-            # config=RunnableConfig({
-            #     "location": settings["location"],
-            #     "search_limit": settings["search_limit"],
-            #     "number_of_results": settings["number_of_results"]
-            # })
-        # )
+        result = agent.runnable.invoke(
+            input={"messages": messages},
+            config=RunnableConfig({
+                "location": settings["location"],
+                "search_limit": settings["search_limit"],
+                "number_of_results": settings["number_of_results"],
+                "callbacks": [get_streamlit_cb(st.empty())],
+            })
+        )
 
     for msg in result["messages"]:
         if isinstance(msg, HumanMessage):
             pass
         elif isinstance(msg, AIMessage):
-            if hasattr(msg, 'additional_kwargs') and 'tool_calls' in msg.additional_kwargs:
-                for tool_call in msg.additional_kwargs['tool_calls']:
-                    fn = tool_call["function"]
-                    with st.chat_message("assistant"):
+            with st.chat_message("assistant"):
+                if hasattr(msg, 'additional_kwargs') and 'tool_calls' in msg.additional_kwargs:
+                    for tool_call in msg.additional_kwargs['tool_calls']:
+                        fn = tool_call["function"]
                         if fn["name"] == "web_search":
                             query = json.loads(fn["arguments"])
                             query_text = query.get("query", "")
@@ -155,8 +155,7 @@ if chat_input:
                             st.markdown(f"**Searching:** {query_text}")
                         else:
                             st.write(msg.content)
-            else:
-                with st.chat_message("assistant"):
+                else:
                     st.write(msg.content)
         elif isinstance(msg, ToolMessage):
             if msg.name == "web_search":

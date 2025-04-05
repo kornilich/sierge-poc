@@ -15,14 +15,12 @@ if you don't have any part of information about the place, just put "n/a" in the
 """
 
 # Preferences defaults
-contextual_preferences_default = """I'm going with my family. 
-Looking for a place with:
-Atmosphere: Casual, child-friendly, well-lit
-Alcohol: Limited or non-alcoholic options
-Meals: Family-style sharing platters
-Noise level: Moderate, tolerant of children's sounds"""
+contextual_preferences_default = """I often go on outings with my husband and friends. 
+We prefer casual, local locations without tourists and pet-friendly. 
+I prefer places that have live music. We prefer alcohol over beer-only restaurants."""
 
-fixed_preferences_default = """I'm from Dallas city, 21 years old, single woman.
-I love dancing, and prefer vegan food.
-Love meeting people but not noisy places.
-I'm a new resident in Dallas."""
+fixed_preferences_default = """I’m in the 30-40 age range and currently married. My dietary restrictions are to follow a Mediterranean diet, and I have a capsaicin and saffron allergy. My activity level is lightly active, and I enjoy outdoor activities like sailing or other water sports, but prefer to avoid hiking or dirt. 
+For recommendations, I consider myself somewhat familiar, so I’d prefer a mix of mainstream and hidden gems.
+My preferred atmosphere is relaxed and intimate, but I also enjoy group gatherings in certain situations. My core interests include performing arts, art galleries and museums, dance, and yoga. I consider myself introverted, and I generally prefer quiet settings.
+My travel style is mid-range, and I generally prefer short trips to explore new cities over extended vacations. For entertainment, I enjoy indie and foreign films films, and my favorite music genres are rock, alternative, and folk. In terms of cuisine, I love Mediterranean, French, and Italian food, but I prefer to avoid Indian cuisine.
+"""

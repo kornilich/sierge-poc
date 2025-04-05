@@ -16,9 +16,10 @@ class SimpleAgent:
         self.agent_description = settings["agent_description"]
         self.tools_instructions = settings["tools_instructions"]
         self.summarize_instructions = settings["summarize_instructions"]
+        self.search_limit = settings["search_limit"]
         self.gpt_model = settings["model"]
         
-        self.llm = ChatOpenAI(
+        self.llm_agent = ChatOpenAI(
             model=self.gpt_model,
             openai_api_key=os.environ["OPENAI_API_KEY"],
             temperature=0,
@@ -38,9 +39,9 @@ class SimpleAgent:
         
         self.tools_node = ToolNode(self.tools)
         
-        self.agent_node = self.llm.bind_tools(self.tools, tool_choice="any")
+        self.llm_agent = self.llm_agent.bind_tools(
+            self.tools, tool_choice="any")
 
-    # def agent_node(self, state: MessagesState, config: RunnableConfig):
     def agent_node(self, state: MessagesState):
         """LLM decides whether to call a tool or not"""
         
@@ -51,18 +52,18 @@ class SimpleAgent:
                     if call["function"]["name"] == "web_search":
                         web_search_count += 1
         
-        # if web_search_count > config["search_limit"]:
-        #     return {"messages": state["messages"] +
-        #             [AIMessage(content=f"Maximum Web Search calls reached ({config['search_limit']}). Stopping.")]}
+        if web_search_count >= self.search_limit:
+            return {"messages": state["messages"] +
+                    [AIMessage(content=f"Maximum Web Search calls reached ({self.search_limit}). Stopping.")]}
 
         return {
             "messages": [
-                self.agent_node.invoke(
+                self.llm_agent.invoke(
                     [
                         SystemMessage(
-                            content=(self.agent_description) + "\n" + 
-                                    (self.tools_instructions)
-                        )
+                            content=self.agent_description + "\n" + 
+                                    self.tools_instructions + "\n" +
+                                    f"You can call the web_search tool up to {self.search_limit-web_search_count} times.")
                     ]
                     + state["messages"]
                 )
