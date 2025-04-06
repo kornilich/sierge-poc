@@ -16,26 +16,28 @@ class ActivityDetails(BaseModel):
 If certain fields lack sufficient data or are unavailable, they will be assigned the value `N/A`    
     """
 
-    # category: str = Field(..., description="Category of activity", enum=category_enum)
-    # Required Fields
-    # type: str = Field(...,
-    #                   description="Type of activity/event (options vary by category).")
+    source: str = Field(
+        default="Model", description="Source of the information. Can be 'Model' or tool name.")
+    rank: Optional[int] = Field(default=None, description="Rank of the activity. Can be 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences."  )
+    category: Optional[str] = Field(default="Other")
     name: Optional[str] = Field(
         default=None, description="Name/Title of the activity (e.g., Event Name, Venue Name, Destination Name).")
     description: Optional[str] = Field(default = None,
                                        description="Brief overview of activity, including cuisine, atmosphere, features and other relevant information")
-    location: str = Field(
-        None, description="Location details (Address, GPS coordinates, or general area).")
+    location: Optional[str] = Field(
+        default=None, description="Location details (Address, GPS coordinates, or general area).")
+    website: Optional[str] = Field(
+        default=None, description="Website of the activity.")
     start_time: Optional[str] = Field(
-        None, description="Start time for time-bound activities.")
+        default=None, description="Start time for time-bound activities.")
     end_time: Optional[str] = Field(
-        None, description="End time for time-bound activities.")
+        default=None, description="End time for time-bound activities.")
     hours_of_operation: Optional[str] = Field(
-        None, description="Hours of operation for ongoing activities.")
+        default=None, description="Hours of operation for ongoing activities.")
     cost: Optional[str] = Field(
-        None, description="Cost & Pricing details (Free, Ticket Price, Price Range).")
+        default=None, description="Cost & Pricing details (Free, Ticket Price, Price Range).")
     booking_info: Optional[str] = Field(
-        None, description="Booking or registration info (e.g., where to buy tickets or RSVP requirements).")
+        default=None, description="Booking or registration info (e.g., where to buy tickets or RSVP requirements).")
 
     # Nice-to-Have Fields
     family_friendliness: Optional[str] = Field(
@@ -63,13 +65,10 @@ If certain fields lack sufficient data or are unavailable, they will be assigned
     )
 
 
-class ActivitiesListByCategory(RootModel):
-    """Holds a collection of activity details representing recommendations by category in activities property."""
-    root: Dict[str, List[ActivityDetails]] = Field(
-        ...,
-        description="Dictionary where key is a catagory and value is ActivityDetails",
-        min_items=0
-    )
+class ActivitiesList(BaseModel):
+    """Holds a collection of activity details representing recommendations"""
+    activities: List[ActivityDetails]
+    reason: Optional[str] = Field(default="No reason provided", description="Reason for the recommendations and tools selection.")
     
 
 @tool("web_search")

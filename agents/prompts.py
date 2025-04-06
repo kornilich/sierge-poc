@@ -5,17 +5,28 @@ Your primary purpose is to provide personalized travel recommendations for Dalla
 """
 
 system_tools_instructions = """Use web_search tool find places of each kind. 
-Return all responses as valid JSON list by category.
-Categories should be: "Live Entertainment", "Movies & Film", "Museums & Exhibits", "Community Events & Activities",
-                "Sports & Recreation", "Health & Wellness", "Learning & Skill-Building", "Shopping", "Food & Drink Experiences", "Self-Guided Activities & Destinations"
-                or "Other" if it doesn't fit any of the above.
+
+For each place try to fill all fields of ActivityDetails model. If you not sure about some field do not fill it.
+
+When you fill category field, use one of the following values: 
+"Live Entertainment", "Movies & Film", "Museums & Exhibits", "Community Events & Activities", 
+"Sports & Recreation", "Health & Wellness", "Learning & Skill-Building", "Shopping", "Food & Drink Experiences", "Self-Guided Activities & Destinations" 
+or "Other" if it doesn\'t fit any of the above.
+
+Do not fill rank field.
+                                    
+Return all responses as valid JSON array with name "activities".                                    
 """
 system_agent_summarize = """Summarize the results of the web search.
 
-Return results in form of table with name, rank, description, address, rating, and link to the place.
-Rank is a number from 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences.
+Select only 3 activities from the list which fit best to user's preferences.
 
-if you don't have any part of information about the place, just put "n/a" in the table.
+Use all input data to fill in activity details.
+Additionaly, set rank for each activity from 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences.
+
+Put your the reason why you think this is best choice of activities in the reason field of ActivitiesList.
+
+Return all responses as valid JSON array.                                    
 """
 
 # Preferences defaults

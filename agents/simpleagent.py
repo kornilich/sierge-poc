@@ -8,7 +8,7 @@ from langgraph.prebuilt import ToolNode
 from langgraph.graph import MessagesState
 
 import agents.tools as tools_set
-from agents.tools import ActivitiesListByCategory
+from agents.tools import ActivitiesList
 
 class SimpleAgent:
     def __init__(self, settings):
@@ -32,14 +32,12 @@ class SimpleAgent:
         self.tools_node = ToolNode(self.tools)
         
         self.llm_agent = self.llm.with_structured_output(
-            ActivitiesListByCategory, method="json_mode")
+            ActivitiesList, method="json_mode")
         
         # bind_tools(self.tools, tool_choice="any").
         
-        # self.llm_summarize = self.llm.with_structured_output(
-        #     ActivitiesListByCategory, method="json_mode")
-        
-        self.llm_summarize = self.llm
+        self.llm_summarize = self.llm.with_structured_output(
+            ActivitiesList, method="json_mode")
 
     def agent_node(self, state: MessagesState):
         """LLM decides whether to call a tool or not"""
@@ -62,13 +60,12 @@ class SimpleAgent:
                 f"You can call the web_search tool up to {self.search_limit-web_search_count} times.")
         ] + state["messages"]
         
-        result = self.llm_agent.invoke(
-            msg_history
-        )
+        result = self.llm_agent.invoke(msg_history)
 
         return {
             "messages": [ 
-                AIMessage(content=result.model_dump_json(), additional_kwargs={"json_output": result})
+                AIMessage(content=result.model_dump_json(), additional_kwargs={
+                          "json_output": result, "title": "Agent results"})
             ]
         }
         
@@ -83,19 +80,18 @@ class SimpleAgent:
 
         new_messages.append(HumanMessage(
             content=human_message + "\n" + self.summarize_instructions))
-       
+        
+        result = self.llm_summarize.invoke(
+            new_messages
+        )
+
         return {
             "messages": [
-                self.llm_summarize.invoke(
-                    [
-                        SystemMessage(
-                            content=self.agent_description
-                        )
-                    ]
-                    + new_messages
-                )
+                AIMessage(content=result.model_dump_json(),
+                            additional_kwargs={"json_output": result, "title":"Summary"})
             ]
         }
+
 
     def should_continue(self, state: MessagesState):
         """Determine whether to continue to tools or end"""

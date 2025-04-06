@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+import pandas as pd
 import streamlit as st
 import inspect
 import os
@@ -14,7 +15,7 @@ from typing import TypeVar, Callable
 import agents.prompts as prmt
 import json
 
-from agents.tools import ActivitiesListByCategory
+from agents.tools import ActivitiesList
 
 # Progress callback wrapper
 def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
@@ -152,8 +153,10 @@ if chat_input:
                             else:
                                 st.write("Tool:", fn["name"], msg.content)
                     elif 'json_output' in msg.additional_kwargs:
-                        st.expander("Research results").json(
-                            msg.additional_kwargs['json_output'].root, expanded=False)
+                        with st.expander("Research results"):
+                            frame = pd.DataFrame([activity.model_dump() for activity in msg.additional_kwargs['json_output'].activities])
+                            st.dataframe(frame)
+                            st.write("Reason:", msg.additional_kwargs['json_output'].reason)
                     else:
                         st.write("AIMessage:", msg.content)
         elif isinstance(msg, ToolMessage):
