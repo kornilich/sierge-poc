@@ -22,22 +22,26 @@ class SimpleAgent:
             model=self.gpt_model,
             openai_api_key=os.environ["OPENAI_API_KEY"],
             temperature=0,
-            streaming=True
         )
-        
+
+        # self.llm_structured = ChatOpenAI(
+        #     model=self.gpt_model,
+        #     openai_api_key=os.environ["OPENAI_API_KEY"],
+        #     temperature=0,
+        # )
+                
         self.tools = [
             tools_set.web_search,
         ]
         
-        self.tools_node = ToolNode(self.tools)
+        self.tools_node = ToolNode(self.tools)        
+        self.llm_agent = self.llm.bind_tools(self.tools, tool_choice="any")
         
-        self.llm_agent = self.llm.with_structured_output(
-            ActivitiesList, method="json_mode")
+        # self.llm_summarize = self.llm.with_structured_output(
+        #     ActivitiesList, method="json_mode")
         
-        # bind_tools(self.tools, tool_choice="any").
-        
-        self.llm_summarize = self.llm.with_structured_output(
-            ActivitiesList, method="json_mode")
+        self.llm_summarize = self.llm
+
 
     def agent_node(self, state: MessagesState):
         """LLM decides whether to call a tool or not"""
@@ -52,6 +56,14 @@ class SimpleAgent:
         if web_search_count >= self.search_limit:
             return {"messages": state["messages"] +
                     [AIMessage(content=f"Maximum Web Search calls reached ({self.search_limit}). Stopping.")]}
+        
+        # Get list of fields and descriptions from ActivityDetails model
+        # activity_details = ""
+        # for field_name, field in tools_set.ActivityDetails.model_fields.items():
+        #     desc = field.description or "No description"
+        #     activity_details += f"Field: {field_name} Description: {desc}\n"
+            
+        # tools_instructions = self.tools_instructions.format(activity_details=activity_details)
             
         msg_history = [
             SystemMessage(
@@ -60,13 +72,11 @@ class SimpleAgent:
                 f"You can call the web_search tool up to {self.search_limit-web_search_count} times.")
         ] + state["messages"]
         
+        
         result = self.llm_agent.invoke(msg_history)
-
+        
         return {
-            "messages": [ 
-                AIMessage(content=result.model_dump_json(), additional_kwargs={
-                          "json_output": result, "title": "Agent results"})
-            ]
+            "messages": [result]
         }
         
     def summarize(self, state: MessagesState):
@@ -77,20 +87,38 @@ class SimpleAgent:
                 human_message = msg.content
             else:
                 new_messages.append(msg)
-
-        new_messages.append(HumanMessage(
-            content=human_message + "\n" + self.summarize_instructions))
         
-        result = self.llm_summarize.invoke(
-            new_messages
-        )
+        # Extract data from tool calls
+        # tool_data = []
+        # for msg in new_messages:
+        #     if isinstance(msg, ToolMessage):
+        #         if msg.name == "web_search":
+        #             tool_data.append(msg.content)
+        #     elif isinstance(msg, AIMessage):
+        #         if "tool_calls" in msg.additional_kwargs:
+        #             for call in msg.additional_kwargs["tool_calls"]:
+        #                 if call["function"]["name"] == "web_search":
+        #                     tool_data.append(call["function"]["arguments"])
 
+        # tool_data_str = "\n\nSearch Results:\n" + "\n".join(tool_data)
+        tool_data_str = ""
+        
+        new_messages.append(HumanMessage(
+            content=human_message + "\n\n" + tool_data_str + "\n\n" + self.summarize_instructions))
+        
+        result = self.llm_summarize.invoke(new_messages)
+
+        # return {
+        #     "messages": [
+        #         AIMessage(content=result.model_dump_json(),
+        #                     additional_kwargs={"structured_output": result, "title":"Summary"})
+        #     ]
+        # }
+        
         return {
-            "messages": [
-                AIMessage(content=result.model_dump_json(),
-                            additional_kwargs={"json_output": result, "title":"Summary"})
-            ]
+            "messages": [result]
         }
+
 
 
     def should_continue(self, state: MessagesState):

@@ -1,0 +1,208 @@
+{
+  "search_metadata": {
+    "id": "67f2d79d2a88dc13305081d9",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/e6e1e51683cd9155/67f2d79d2a88dc13305081d9.json",
+    "created_at": "2025-04-06 19:35:57 UTC",
+    "processed_at": "2025-04-06 19:35:57 UTC",
+    "google_url": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&oq=outdoor+activities+sailing+water+sports+Dallas&uule=w+CAIQICIaRGFsbGFzLFRleGFzLFVuaXRlZCBTdGF0ZXM&num=5&sourceid=chrome&ie=UTF-8",
+    "raw_html_file": "https://serpapi.com/searches/e6e1e51683cd9155/67f2d79d2a88dc13305081d9.html",
+    "total_time_taken": 1.3
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "outdoor activities sailing water sports Dallas",
+    "location_requested": "Dallas, Texas, United States",
+    "location_used": "Dallas,Texas,United States",
+    "google_domain": "google.com",
+    "num": "5",
+    "device": "desktop"
+  },
+  "search_information": {
+    "query_displayed": "outdoor activities sailing water sports Dallas",
+    "total_results": 937000,
+    "time_taken_displayed": 0.57,
+    "organic_results_state": "Results for exact spelling"
+  },
+  "knowledge_graph": {
+    "title": "White Rock Boat Club",
+    "thumbnail": "https://serpapi.com/searches/67f2d79d2a88dc13305081d9/images/88d2f5f6d93c4d2bbb6eb3732750b07d1b05dc5241dac1f6aa181d92405209b6.jpeg",
+    "type": "Boat club in Dallas, Texas",
+    "entity_type": "local_nav",
+    "kgmid": "/g/1wfvn1m9",
+    "knowledge_graph_search_link": "https://www.google.com/search?kgmid=/g/1wfvn1m9&hl=en-US&q=White+Rock+Boat+Club",
+    "serpapi_knowledge_graph_search_link": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&hl=en-US&kgmid=%2Fg%2F1wfvn1m9&location=Dallas%2C+Texas%2C+United+States&num=5&q=White+Rock+Boat+Club",
+    "place_id": "ChIJ8d5tdbKhToYR2979VL5Dk7M",
+    "website": "https://www.whiterockboatclub.org/",
+    "directions": "https://maps.google.com/maps?uule=w+CAIQICIaRGFsbGFzLFRleGFzLFVuaXRlZCBTdGF0ZXM&num=5&um=1&ie=UTF-8&fb=1&gl=us&sa=X&geocode=KfHebXWyoU6GMdve_VS-Q5Oz&daddr=Parking+lot,+340+E+Lawther+Dr,+Dallas,+TX+75218",
+    "reviews": "https://www.google.com/search?num=5&sca_esv=78a64650b52de278&si=APYL9btvhO6SAb8jF9HqTZMMa7vs_teLnZaEVrJZwRKFIIKjoScaW6OV2VNslw2W1p3NZmT2Cm5kUppohyk6iPI-9815VJt3b3cIYFtwj0rBceaKC3aVXF6ClXimL8OnOseECm62FKIuum8OaIe_R29EPnRH71b-YA%3D%3D&q=White+Rock+Boat+Club+Reviews&sa=X&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ0bkNegQIPBAE",
+    "local_map": {
+      "image": "https://serpapi.com/searches/67f2d79d2a88dc13305081d9/images/88d2f5f6d93c4d2bbb6eb3732750b07dd75426fd89dd5d73db8d1aa7fe9c245d.webp",
+      "link": "https://www.google.com/maps/place/White+Rock+Boat+Club/data=!4m2!3m1!1s0x0:0xb39343be54fddedb?sa=X&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ_BJ6BAhAEAA",
+      "gps_coordinates": {
+        "latitude": 32.8503615,
+        "longitude": -96.7193495
+      }
+    },
+    "address": "Parking lot, 340 E Lawther Dr, Dallas, TX 75218",
+    "address_links": [
+      {
+        "text": "Address",
+        "link": "https://www.google.com/search?num=5&sca_esv=78a64650b52de278&q=white+rock+boat+club+address&ludocid=12939760639114338011&sa=X&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ6BN6BAg_EAI"
+      }
+    ],
+    "unclaimed_listing": true
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "BEST of Dallas, TX Water Activities",
+      "link": "https://www.yelp.com/search?find_desc=Water+Activities&find_loc=Dallas%2C+TX",
+      "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.yelp.com/search%3Ffind_desc%3DWater%2BActivities%26find_loc%3DDallas%252C%2BTX&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQFnoECBQQAQ",
+      "displayed_link": "https://www.yelp.com › Active Life",
+      "thumbnail": "https://serpapi.com/searches/67f2d79d2a88dc13305081d9/images/512539c8cde641aa1693ca020943083369c5f041f4af6bbe119c2745c0a4dc01.jpeg",
+      "favicon": "https://serpapi.com/searches/67f2d79d2a88dc13305081d9/images/512539c8cde641aa1693ca0209430833029d6a7958e9b1f2d8d78acdc1367236.png",
+      "snippet": "Top 10 Best Water Activities Near Dallas, Texas · 1. Sapphire Bay Marina. 4.1 (9 reviews) · 2. Surf & Swim, Audubon Park. 3.7 (18 reviews) · 3. Paradise Springs ...",
+      "snippet_highlighted_words": [
+        "1. Sapphire Bay Marina"
+      ],
+      "source": "Yelp"
+    },
+    {
+      "position": 2,
+      "title": "Water Activities in Dallas: Fishing, Watersports, and More",
+      "link": "https://www.boatsetter.com/boating-resources/water-activities-in-dallas",
+      "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.boatsetter.com/boating-resources/water-activities-in-dallas&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQFnoECBIQAQ",
+      "displayed_link": "https://www.boatsetter.com › boating-resources › water-...",
+      "favicon": "https://serpapi.com/searches/67f2d79d2a88dc13305081d9/images/512539c8cde641aa1693ca02094308338f11819b26de2b43ef9d3212fb06c360.png",
+      "date": "Sep 12, 2022",
+      "snippet": "Wakeboarding on Lake Lewisville. Kayaking down the Trinity River. Rowing on Joe Pool Lake. Sailing on White Rock Lake. Paddleboard yoga in a ...",
+      "snippet_highlighted_words": [
+        "Wakeboarding on Lake Lewisville"
+      ],
+      "sitelinks": {
+        "inline": [
+          {
+            "title": "Go Fishing in Dallas",
+            "link": "https://www.boatsetter.com/boating-resources/water-activities-in-dallas#Go_Fishing_in_Dallas"
+          },
+          {
+            "title": "Fishing 101: When in Dallas",
+            "link": "https://www.boatsetter.com/boating-resources/water-activities-in-dallas#Fishing_101_When_in_Dallas"
+          }
+        ]
+      },
+      "missing": [
+        "outdoor"
+      ],
+      "must_include": {
+        "word": "outdoor",
+        "link": "https://www.google.com/search?num=5&sca_esv=78a64650b52de278&q=%22outdoor%22+activities+sailing+water+sports+Dallas&sa=X&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ5t4CegQIJhAB"
+      },
+      "source": "Boatsetter"
+    },
+    {
+      "position": 3,
+      "title": "Book Water Activities in Dallas - Batch",
+      "link": "https://letsbatch.com/cities/dallas-tx/explore/experiences/water-activities",
+      "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://letsbatch.com/cities/dallas-tx/explore/experiences/water-activities&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQFnoECA4QAQ",
+      "displayed_link": "https://letsbatch.com › dallas-tx › explore › experiences",
+      "favicon": "https://serpapi.com/searches/67f2d79d2a88dc13305081d9/images/512539c8cde641aa1693ca0209430833d86e2db5147a7aaa11b03664556b1da2.png",
+      "snippet": "Dive into the fun with water activities! From boat rentals to paddle boarding, these experiences are sure to make a splash. Time to get wet and wild.",
+      "snippet_highlighted_words": [
+        "fun",
+        "water activities"
+      ],
+      "missing": [
+        "outdoor",
+        "sailing",
+        "sports"
+      ],
+      "source": "letsbatch.com"
+    },
+    {
+      "position": 4,
+      "title": "THE 10 BEST Dallas Boat Rides & Cruises (2025)",
+      "link": "https://www.tripadvisor.com/Attractions-g55711-Activities-c55-Dallas_Texas.html",
+      "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.tripadvisor.com/Attractions-g55711-Activities-c55-Dallas_Texas.html&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQFnoECAwQAQ",
+      "displayed_link": "https://www.tripadvisor.com › ... › Things to Do in Dallas",
+      "favicon": "https://serpapi.com/searches/67f2d79d2a88dc13305081d9/images/512539c8cde641aa1693ca0209430833f8c29744662352078d63cf8b17c2cd59.png",
+      "snippet": "Boat Rides & Cruises in Dallas · 1. The Spirit of Dallas · 2. Mar Hosted Trips · 3. Dallas Paddle Company · 4. The Lake Lounge · 5. Sherp Atv Off Road Rentals · 6.",
+      "snippet_highlighted_words": [
+        "1. The Spirit of Dallas"
+      ],
+      "source": "Tripadvisor"
+    },
+    {
+      "position": 5,
+      "title": "Exciting Activities In The Dallas-Fort Worth Area",
+      "link": "https://getupandgokayaking.com/embrace-the-outdoors-exciting-activities-in-the-dallas-fort-worth-area/",
+      "redirect_link": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://getupandgokayaking.com/embrace-the-outdoors-exciting-activities-in-the-dallas-fort-worth-area/&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQFnoECA0QAQ",
+      "displayed_link": "https://getupandgokayaking.com › embrace-the-outdoo...",
+      "favicon": "https://serpapi.com/searches/67f2d79d2a88dc13305081d9/images/512539c8cde641aa1693ca020943083366f05a3b7123505fb318f30785f8ef2e.png",
+      "date": "Jun 19, 2023",
+      "snippet": "Whether you prefer hiking, biking, water sports, kayaking, rock climbing, wildlife encounters, or horseback riding, DFW has it all.",
+      "snippet_highlighted_words": [
+        "water sports"
+      ],
+      "source": "Get Up And Go Kayaking"
+    }
+  ],
+  "related_searches": [
+    {
+      "block_position": 1,
+      "query": "Outdoor activities sailing water sports dallas texas",
+      "link": "https://www.google.com/search?num=5&sca_esv=78a64650b52de278&q=Outdoor+activities+sailing+water+sports+dallas+texas&sa=X&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ1QJ6BAgLEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=Outdoor+activities+sailing+water+sports+dallas+texas"
+    },
+    {
+      "block_position": 1,
+      "query": "Best outdoor activities sailing water sports dallas",
+      "link": "https://www.google.com/search?num=5&sca_esv=78a64650b52de278&q=Best+outdoor+activities+sailing+water+sports+dallas&sa=X&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ1QJ6BAgJEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=Best+outdoor+activities+sailing+water+sports+dallas"
+    },
+    {
+      "block_position": 1,
+      "query": "Sapphire Bay",
+      "link": "https://www.google.com/search?num=5&sca_esv=78a64650b52de278&q=Sapphire+Bay&sa=X&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ1QJ6BAgIEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=Sapphire+Bay"
+    },
+    {
+      "block_position": 1,
+      "query": "Sapphire Bay Marina",
+      "link": "https://www.google.com/search?num=5&sca_esv=78a64650b52de278&q=Sapphire+Bay+Marina&sa=X&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ1QJ6BAgGEAE",
+      "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=Sapphire+Bay+Marina"
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "next": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=5&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8NMDegQIERAW",
+    "other_pages": {
+      "2": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=5&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAE",
+      "3": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=10&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAG",
+      "4": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=15&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAI",
+      "5": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=20&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAK",
+      "6": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=25&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAM",
+      "7": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=30&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAO",
+      "8": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=35&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAQ",
+      "9": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=40&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAS",
+      "10": "https://www.google.com/search?q=outdoor+activities+sailing+water+sports+Dallas&num=5&sca_esv=78a64650b52de278&ei=ntfyZ7u1CMuDwbkPi_384AY&start=45&sa=N&sstk=Af40H4ULoApGv4qJ2lwrfzmaYK_CEFayynLlEQQqo8PDvTQMOvsneWeXEFw1H9FHiqG8yCIwA_aM3D9Ix3J68zdno4x1rmsG4iwVzQ&ved=2ahUKEwi7_MLUk8SMAxXLQTABHYs-H2wQ8tMDegQIERAU"
+    }
+  },
+  "serpapi_pagination": {
+    "current": 1,
+    "next_link": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=5",
+    "next": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=5",
+    "other_pages": {
+      "2": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=5",
+      "3": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=10",
+      "4": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=15",
+      "5": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=20",
+      "6": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=25",
+      "7": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=30",
+      "8": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=35",
+      "9": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=40",
+      "10": "https://serpapi.com/search.json?device=desktop&engine=google&google_domain=google.com&location=Dallas%2C+Texas%2C+United+States&num=5&q=outdoor+activities+sailing+water+sports+Dallas&start=45"
+    }
+  }
+}

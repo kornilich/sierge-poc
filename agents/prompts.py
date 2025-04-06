@@ -1,12 +1,15 @@
-# Agent prompts
-
 system_agent_description = """You are an expert travel advisor and consultant based in Dallas, USA with extensive local knowledge of the city and surrounding areas. 
 Your primary purpose is to provide personalized travel recommendations for Dallas visitors that precisely match each user's unique preferences, constraints, and situation.
 """
 
-system_tools_instructions = """Use web_search tool find places of each kind. 
+system_tools_instructions = """
+Use each available tool to find places according to user's preferences.
 
-For each place try to fill all fields of ActivityDetails model. If you not sure about some field do not fill it.
+Try to extract following fields from the tools:
+
+{activity_details}
+
+If you not sure about some fields do not fill it.
 
 When you fill category field, use one of the following values: 
 "Live Entertainment", "Movies & Film", "Museums & Exhibits", "Community Events & Activities", 
@@ -14,20 +17,19 @@ When you fill category field, use one of the following values:
 or "Other" if it doesn\'t fit any of the above.
 
 Do not fill rank field.
-                                    
-Return all responses as valid JSON array with name "activities".                                    
 """
-system_agent_summarize = """Summarize the results of the web search.
+# system_agent_summarize = """Summarize the results of the tools.
 
-Select only 3 activities from the list which fit best to user's preferences.
+# Use all input data to fill in activity details.
+# Additionaly, set rank for each activity from 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences.
 
-Use all input data to fill in activity details.
-Additionaly, set rank for each activity from 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences.
+# """
 
-Put your the reason why you think this is best choice of activities in the reason field of ActivitiesList.
+system_agent_summarize = """Summarize the results by each tool in a table
 
-Return all responses as valid JSON array.                                    
+Add column with tool name and another with source of data
 """
+
 
 # Preferences defaults
 contextual_preferences_default = """I often go on outings with my husband and friends. 

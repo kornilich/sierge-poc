@@ -6,7 +6,8 @@ import os
 from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ctx
 from agents.simpleagent import SimpleAgent
-from langchain.callbacks.streamlit import StreamlitCallbackHandler
+# from langchain.callbacks.streamlit import StreamlitCallbackHandler
+from streamlit.external.langchain import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
@@ -17,6 +18,11 @@ import json
 
 from agents.tools import ActivitiesList
 
+
+class slCallbackHandler(StreamlitCallbackHandler):
+    def on_chat_model_start(self, serialized, messages, **kwargs):
+        return self.on_llm_start(serialized=serialized, prompts=messages, **kwargs)
+
 # Progress callback wrapper
 def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
     fn_return_type = TypeVar('fn_return_type')
@@ -25,12 +31,17 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
         ctx = get_script_run_ctx()
 
         def wrapper(*args, **kwargs) -> fn_return_type:
-            add_script_run_ctx(ctx=ctx)
-            return fn(*args, **kwargs)
+            try:    
+                add_script_run_ctx(ctx=ctx)
+                r = fn(*args, **kwargs)
+                return r
+            except Exception as e:
+                # st.info(f"Error: {e}")
+                return None
 
         return wrapper
 
-    st_cb = StreamlitCallbackHandler(parent_container)
+    st_cb = slCallbackHandler(parent_container)
 
     for method_name, method_func in inspect.getmembers(st_cb, predicate=inspect.ismethod):
         if method_name.startswith('on_'):
@@ -79,7 +90,7 @@ def streamlit_config():
             location = st.selectbox(
                 "Location", ("Dallas, Texas, United States", "Los Angeles, California, United States"))
             search_limit = st.slider(
-                "Search limit", min_value=0, max_value=20, value=3)
+                "Search limit", min_value=0, max_value=20, value=1)
             number_of_results = st.slider(
                 "Number of results", min_value=5, max_value=20, value=5)
 
@@ -132,7 +143,7 @@ if chat_input:
                 "location": settings["location"],
                 "search_limit": settings["search_limit"],
                 "number_of_results": settings["number_of_results"],
-                # "callbacks": [get_streamlit_cb(st.empty())],
+                "callbacks": [get_streamlit_cb(st.empty())],
             })
         )
 
@@ -152,18 +163,27 @@ if chat_input:
                                 st.markdown(f"**Searching:** {query_text}")
                             else:
                                 st.write("Tool:", fn["name"], msg.content)
-                    elif 'json_output' in msg.additional_kwargs:
-                        with st.expander("Research results"):
-                            frame = pd.DataFrame([activity.model_dump() for activity in msg.additional_kwargs['json_output'].activities])
+                    elif 'structured_output' in msg.additional_kwargs:
+                        with st.expander(msg.additional_kwargs['title']):
+                            frame = pd.DataFrame([activity.model_dump(
+                            ) for activity in msg.additional_kwargs['structured_output'].activities])
                             st.dataframe(frame)
-                            st.write("Reason:", msg.additional_kwargs['json_output'].reason)
+                            st.write(
+                                "Reason:", msg.additional_kwargs['structured_output'].reason)
                     else:
                         st.write("AIMessage:", msg.content)
         elif isinstance(msg, ToolMessage):
             if msg.name == "web_search":
                 with st.chat_message("Search resutls", avatar=":material/manage_search:"):
-                    st.expander("Search results").json(
-                        msg.content, expanded=False)
+                    json_content = json.loads(msg.content)
+                    title = json_content.get("search_metadata", {}).get("google_url", "")                    
+                    if title:   
+                        title = "Search results \n" + title
+                    else:
+                        title = "Search results"
+                        
+                    st.expander(title).json(
+                        json_content, expanded=True)
             else:
                 st.write(msg)
         else:
