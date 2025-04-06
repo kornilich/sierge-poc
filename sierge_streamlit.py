@@ -1,8 +1,3 @@
-# import pandas as pd
-# from datetime import datetime, timedelta
-# from PIL import Image
-# from langsmith import Client as LangsmithClient
-
 from dotenv import load_dotenv
 import streamlit as st
 import inspect
@@ -19,9 +14,9 @@ from typing import TypeVar, Callable
 import agents.prompts as prmt
 import json
 
+from agents.tools import ActivitiesListByCategory
+
 # Progress callback wrapper
-
-
 def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
     fn_return_type = TypeVar('fn_return_type')
 
@@ -136,7 +131,7 @@ if chat_input:
                 "location": settings["location"],
                 "search_limit": settings["search_limit"],
                 "number_of_results": settings["number_of_results"],
-                "callbacks": [get_streamlit_cb(st.empty())],
+                # "callbacks": [get_streamlit_cb(st.empty())],
             })
         )
 
@@ -145,18 +140,22 @@ if chat_input:
             pass
         elif isinstance(msg, AIMessage):
             with st.chat_message("assistant"):
-                if hasattr(msg, 'additional_kwargs') and 'tool_calls' in msg.additional_kwargs:
-                    for tool_call in msg.additional_kwargs['tool_calls']:
-                        fn = tool_call["function"]
-                        if fn["name"] == "web_search":
-                            query = json.loads(fn["arguments"])
-                            query_text = query.get("query", "")
+                if hasattr(msg, 'additional_kwargs'):
+                    if 'tool_calls' in msg.additional_kwargs:
+                        for tool_call in msg.additional_kwargs['tool_calls']:
+                            fn = tool_call["function"]
+                            if fn["name"] == "web_search":
+                                query = json.loads(fn["arguments"])
+                                query_text = query.get("query", "")
 
-                            st.markdown(f"**Searching:** {query_text}")
-                        else:
-                            st.write(msg.content)
-                else:
-                    st.write(msg.content)
+                                st.markdown(f"**Searching:** {query_text}")
+                            else:
+                                st.write("Tool:", fn["name"], msg.content)
+                    elif 'json_output' in msg.additional_kwargs:
+                        st.expander("Research results").json(
+                            msg.additional_kwargs['json_output'].root, expanded=False)
+                    else:
+                        st.write("AIMessage:", msg.content)
         elif isinstance(msg, ToolMessage):
             if msg.name == "web_search":
                 with st.chat_message("Search resutls", avatar=":material/manage_search:"):
@@ -188,3 +187,5 @@ else:  # Default page view
         st.write(settings["tools_instructions"])
         st.subheader(":gray[Summarize prompt]")
         st.write(settings["summarize_instructions"])
+    # schema = ActivitiesListByCategory.model_json_schema()
+    # st.write(schema)

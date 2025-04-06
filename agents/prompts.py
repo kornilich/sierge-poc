@@ -5,6 +5,10 @@ Your primary purpose is to provide personalized travel recommendations for Dalla
 """
 
 system_tools_instructions = """Use web_search tool find places of each kind. 
+Return all responses as valid JSON list by category.
+Categories should be: "Live Entertainment", "Movies & Film", "Museums & Exhibits", "Community Events & Activities",
+                "Sports & Recreation", "Health & Wellness", "Learning & Skill-Building", "Shopping", "Food & Drink Experiences", "Self-Guided Activities & Destinations"
+                or "Other" if it doesn't fit any of the above.
 """
 system_agent_summarize = """Summarize the results of the web search.
 

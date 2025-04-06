@@ -1,0 +1,87 @@
+{
+  "restaurants": [
+    {
+      "name": "CiboDivino",
+      "cuisine": "Mediterranean",
+      "atmosphere": "relaxed and intimate",
+      "features": ["pet-friendly", "live music", "casual"],
+      "location": "Dallas, TX"
+    },
+    {
+      "name": "Café Izmir",
+      "cuisine": "Mediterranean",
+      "atmosphere": "casual and local",
+      "features": ["pet-friendly", "live music", "alcohol available"],
+      "location": "Dallas, TX"
+    },
+    {
+      "name": "Bistro 31",
+      "cuisine": "French",
+      "atmosphere": "intimate",
+      "features": ["pet-friendly", "wine selection", "casual"],
+      "location": "Dallas, TX"
+    }
+  ],
+  "outdoor_activities": [
+    {
+      "name": "White Rock Lake",
+      "activity": "Sailing",
+      "atmosphere": "relaxed",
+      "features": ["water sports", "scenic views"],
+      "location": "Dallas, TX"
+    },
+    {
+      "name": "Lake Grapevine",
+      "activity": "Water sports",
+      "atmosphere": "casual",
+      "features": ["sailing", "kayaking"],
+      "location": "Grapevine, TX"
+    }
+  ],
+  "performing_arts": [
+    {
+      "name": "Dallas Theater Center",
+      "type": "Theater",
+      "atmosphere": "intimate",
+      "features": ["indie performances", "local artists"],
+      "location": "Dallas, TX"
+    },
+    {
+      "name": "The Kessler Theater",
+      "type": "Live Music Venue",
+      "atmosphere": "relaxed",
+      "features": ["indie and alternative music", "intimate setting"],
+      "location": "Dallas, TX"
+    }
+  ],
+  "art_galleries": [
+    {
+      "name": "The Nasher Sculpture Center",
+      "type": "Art Museum",
+      "atmosphere": "quiet and serene",
+      "features": ["outdoor sculptures", "intimate setting"],
+      "location": "Dallas, TX"
+    },
+    {
+      "name": "The Contemporary Austin",
+      "type": "Art Gallery",
+      "atmosphere": "relaxed",
+      "features": ["local artists", "unique exhibitions"],
+      "location": "Austin, TX"
+    }
+  ],
+  "yoga_studios": [
+    {
+      "name": "Yoga Tree",
+      "atmosphere": "quiet and intimate",
+      "features": ["small classes", "relaxed environment"],
+      "location": "Dallas, TX"
+    },
+    {
+      "name": "The Yoga Room",
+      "atmosphere": "casual",
+      "features": ["group classes", "pet-friendly"],
+      "location": "Dallas, TX"
+    }
+  ]
+}

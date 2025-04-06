@@ -3,6 +3,75 @@ from serpapi import GoogleSearch
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 
+from typing import Optional, List, TypedDict, Annotated, Dict, Literal
+from langchain_core.messages import AnyMessage
+from pydantic import BaseModel, Field, ConfigDict, RootModel, model_validator, root_validator
+
+
+CategoryEnum = Literal["Live Entertainment", "Movies & Film", "Museums & Exhibits", "Community Events & Activities",
+                "Sports & Recreation", "Health & Wellness", "Learning & Skill-Building", "Shopping", "Food & Drink Experiences", "Self-Guided Activities & Destinations", "Other"]
+
+class ActivityDetails(BaseModel):
+    """Represents detailed information about an activity or event.
+If certain fields lack sufficient data or are unavailable, they will be assigned the value `N/A`    
+    """
+
+    # category: str = Field(..., description="Category of activity", enum=category_enum)
+    # Required Fields
+    # type: str = Field(...,
+    #                   description="Type of activity/event (options vary by category).")
+    name: Optional[str] = Field(
+        default=None, description="Name/Title of the activity (e.g., Event Name, Venue Name, Destination Name).")
+    description: Optional[str] = Field(default = None,
+                                       description="Brief overview of activity, including cuisine, atmosphere, features and other relevant information")
+    location: str = Field(
+        None, description="Location details (Address, GPS coordinates, or general area).")
+    start_time: Optional[str] = Field(
+        None, description="Start time for time-bound activities.")
+    end_time: Optional[str] = Field(
+        None, description="End time for time-bound activities.")
+    hours_of_operation: Optional[str] = Field(
+        None, description="Hours of operation for ongoing activities.")
+    cost: Optional[str] = Field(
+        None, description="Cost & Pricing details (Free, Ticket Price, Price Range).")
+    booking_info: Optional[str] = Field(
+        None, description="Booking or registration info (e.g., where to buy tickets or RSVP requirements).")
+
+    # Nice-to-Have Fields
+    family_friendliness: Optional[str] = Field(
+        None, description="Indicates if the activity is family-friendly.")
+    accessibility_features: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Accessibility features available (e.g., wheelchair accessible, ASL interpretation). "
+            "Alternatively, a method to assess whether accessibility features are needed."
+        )
+    )
+    age_restrictions: Optional[str] = Field(
+        None, description="Age restrictions for the activity (e.g., All ages, 18+, etc.).")
+    indoor_outdoor: Optional[str] = Field(
+        None, description="Indicates if the activity is indoor or outdoor.")
+    recommended_attire_or_equipment: Optional[str] = Field(
+        None,
+        description="Recommended attire or equipment for the activity (e.g., dress code or bring your own gear)."
+    )
+    weather_considerations: Optional[str] = Field(
+        None,
+        description=(
+            "Weather-related considerations (Rain date, weather-related cancellations, recommended conditions)."
+        )
+    )
+
+
+class ActivitiesListByCategory(RootModel):
+    """Holds a collection of activity details representing recommendations by category in activities property."""
+    root: Dict[str, List[ActivityDetails]] = Field(
+        ...,
+        description="Dictionary where key is a catagory and value is ActivityDetails",
+        min_items=0
+    )
+    
+
 @tool("web_search")
 def web_search(query: str, config: RunnableConfig):
     """Finds general knowledge information using Google search. Can also be used

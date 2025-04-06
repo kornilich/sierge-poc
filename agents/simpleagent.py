@@ -6,10 +6,9 @@ from langgraph.graph import StateGraph
 from langgraph.graph import START, END
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import MessagesState
-from langchain_core.runnables import RunnableConfig
 
-import agents.tools as mytools
-import agents.prompts as prmt
+import agents.tools as tools_set
+from agents.tools import ActivitiesListByCategory
 
 class SimpleAgent:
     def __init__(self, settings):
@@ -19,14 +18,7 @@ class SimpleAgent:
         self.search_limit = settings["search_limit"]
         self.gpt_model = settings["model"]
         
-        self.llm_agent = ChatOpenAI(
-            model=self.gpt_model,
-            openai_api_key=os.environ["OPENAI_API_KEY"],
-            temperature=0,
-            streaming=True
-        )
-        
-        self.llm_summarize = ChatOpenAI(
+        self.llm = ChatOpenAI(
             model=self.gpt_model,
             openai_api_key=os.environ["OPENAI_API_KEY"],
             temperature=0,
@@ -34,13 +26,20 @@ class SimpleAgent:
         )
         
         self.tools = [
-            mytools.web_search,
+            tools_set.web_search,
         ]
         
         self.tools_node = ToolNode(self.tools)
         
-        self.llm_agent = self.llm_agent.bind_tools(
-            self.tools, tool_choice="any")
+        self.llm_agent = self.llm.with_structured_output(
+            ActivitiesListByCategory, method="json_mode")
+        
+        # bind_tools(self.tools, tool_choice="any").
+        
+        # self.llm_summarize = self.llm.with_structured_output(
+        #     ActivitiesListByCategory, method="json_mode")
+        
+        self.llm_summarize = self.llm
 
     def agent_node(self, state: MessagesState):
         """LLM decides whether to call a tool or not"""
@@ -55,27 +54,25 @@ class SimpleAgent:
         if web_search_count >= self.search_limit:
             return {"messages": state["messages"] +
                     [AIMessage(content=f"Maximum Web Search calls reached ({self.search_limit}). Stopping.")]}
+            
+        msg_history = [
+            SystemMessage(
+                content=self.agent_description + "\n" +
+                self.tools_instructions + "\n" +
+                f"You can call the web_search tool up to {self.search_limit-web_search_count} times.")
+        ] + state["messages"]
+        
+        result = self.llm_agent.invoke(
+            msg_history
+        )
 
         return {
-            "messages": [
-                self.llm_agent.invoke(
-                    [
-                        SystemMessage(
-                            content=self.agent_description + "\n" + 
-                                    self.tools_instructions + "\n" +
-                                    f"You can call the web_search tool up to {self.search_limit-web_search_count} times.")
-                    ]
-                    + state["messages"]
-                )
+            "messages": [ 
+                AIMessage(content=result.model_dump_json(), additional_kwargs={"json_output": result})
             ]
         }
         
     def summarize(self, state: MessagesState):
-        search_results = []
-        for msg in state["messages"]:
-            if isinstance(msg, ToolMessage):
-                search_results.append({"call_id": msg.tool_call_id, "content": msg.content})
-                
         new_messages = []
         human_message = None
         for msg in state["messages"]:
@@ -86,7 +83,6 @@ class SimpleAgent:
 
         new_messages.append(HumanMessage(
             content=human_message + "\n" + self.summarize_instructions))
-        # new_messages.append(AIMessage(content=json.dumps(search_results)))
        
         return {
             "messages": [
