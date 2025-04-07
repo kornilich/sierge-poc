@@ -88,7 +88,8 @@ def web_search(query: str, config: RunnableConfig):
         "top_sights"
     ]
 
-    results = serpapi_search(query, "google", config, result_types, mock_file = "mockups/serpapi-1.json")
+    results = serpapi_search(query, "google", config, result_types)
+                            #  , mock_file = "mockups/serpapi-1.json")
     
     return results
 
@@ -105,7 +106,8 @@ and other activities based on their query, location, and preferences."""
         "events_results",
     ]
     
-    results = serpapi_search(query, "google_events", config, result_types, mock_file = "mockups/serpapi-events-1.json")
+    results = serpapi_search(query, "google_events", config, result_types)
+                            #  , mock_file = "mockups/serpapi-events-1.json")
     
     return results
 
@@ -124,7 +126,8 @@ shops, and services based on their query and current location."""
         "discover_more_places",
     ]
 
-    results = serpapi_search(query, "google_local", config, result_types, mock_file = "mockups/serpapi-locals-1.json")
+    results = serpapi_search(query, "google_local", config, result_types)
+                            #  , mock_file = "mockups/serpapi-locals-1.json")
     
     return results
 
