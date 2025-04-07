@@ -1,3 +1,8 @@
+agent_system_prompt = """{agent_description}
+{tools_instructions}
+You can call the web_search tool up to {search_limit} times.
+"""
+
 system_agent_description = """You are an expert travel advisor and consultant based in {location} with extensive local knowledge of the city and surrounding areas. 
 Your primary purpose is to provide personalized travel recommendations for Dallas visitors that precisely match each user's unique preferences, constraints, and situation.
 """
@@ -10,7 +15,8 @@ Then use local_search to find places to go out according to user's preferences.
 Do not use the same tool more than once.
 
 """
-system_agent_summarize = """Summarize the results by each tool in a table
+system_agent_summarize = """Outline results in the table format.
+
 Add column with tool name and another with search type.
 """
 

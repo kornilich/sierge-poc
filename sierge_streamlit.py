@@ -126,13 +126,26 @@ chat_input = st.chat_input("Describe your situational preferences here...")
 if chat_input:
     query = f"{settings['fixed_preferences']} \n\n {settings['contextual_preferences']} \n\n {chat_input}"
 
+    with st.chat_message("ai"):
+        with st.expander("System prompt (agent)", expanded=False):
+            st.write(prmt.agent_system_prompt.format(
+                agent_description=settings["agent_description"].format(
+                    location=settings["location"]),
+                tools_instructions=settings["tools_instructions"],
+                search_limit=settings["search_limit"]))
+
     with st.chat_message("human"):
-        with st.expander("Asking LLM", expanded=True):
+        with st.expander("Human prompt", expanded=True):
             st.write(query)
             st.markdown(
                 f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['location']}]" +
                 f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
             )
+            
+    with st.chat_message("ai"):
+        with st.expander("System prompt (summarization)", expanded=False):
+            st.write(settings["agent_description"].format(
+                location=settings["location"]) + "\n\n" + settings["summarize_instructions"])
 
     with st.spinner("Running agent...", show_time=True):
         messages = [HumanMessage(content=query)]
