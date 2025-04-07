@@ -1,0 +1,444 @@
+{
+  "search_metadata": {
+    "id": "67f3db11adb5e4e6fc7b8bc2",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/f281523e90751a5d/67f3db11adb5e4e6fc7b8bc2.json",
+    "created_at": "2025-04-07 14:02:57 UTC",
+    "processed_at": "2025-04-07 14:02:57 UTC",
+    "google_local_url": "https://www.google.com/search?q=pet-friendly+restaurants+with+live+music+in+Dallas&uule=w+CAIQICIaRGFsbGFzLFRleGFzLFVuaXRlZCBTdGF0ZXM&hl=en&gl=us&tbm=lcl",
+    "raw_html_file": "https://serpapi.com/searches/f281523e90751a5d/67f3db11adb5e4e6fc7b8bc2.html",
+    "total_time_taken": 2.95
+  },
+  "search_parameters": {
+    "engine": "google_local",
+    "q": "pet-friendly restaurants with live music in Dallas",
+    "location_requested": "Dallas, Texas, United States",
+    "location_used": "Dallas,Texas,United States",
+    "google_domain": "google.com",
+    "hl": "en",
+    "gl": "us",
+    "device": "desktop"
+  },
+  "local_results": [
+    {
+      "position": 1,
+      "rating": 4.4,
+      "reviews": 2700,
+      "reviews_original": "(2.7K)",
+      "price": "$$",
+      "description": "\"Dog friendly spot!!\"",
+      "lsig": "AB86z5XKAjqej6lLLG3vOSDkBZZI",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc6e47b912e0990171de62dbc1e4bd13a0b23e13d8fe236a49.jpeg",
+      "place_id": "15411151253648939494",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=15411151253648939494&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.789204,
+        "longitude": -96.80559
+      },
+      "title": "The Henry",
+      "type": "American",
+      "address": "2301 N Akard St Suite 250"
+    },
+    {
+      "position": 2,
+      "rating": 4.2,
+      "reviews": 3500,
+      "reviews_original": "(3.5K)",
+      "price": "$20–30",
+      "description": "\"We loved their outdoor seating and pet friendly vibes.\"",
+      "lsig": "AB86z5XGvOzlrtRGeeA1UFswHusl",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc5851d5f4f35ca445e31064f64920a4b41b6241118eefb333.jpeg",
+      "place_id": "17265218605057176218",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=17265218605057176218&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.80077,
+        "longitude": -96.80744
+      },
+      "title": "Katy Trail Ice House",
+      "type": "Restaurant",
+      "address": "3127 Routh St",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 3,
+      "rating": 4.5,
+      "reviews": 1300,
+      "reviews_original": "(1.3K)",
+      "price": "$20–30",
+      "description": "\"Amazing brunch spot, pet friendly and an amazing staff\"",
+      "lsig": "AB86z5WeT8MlLglreezlWMbbeTaR",
+      "thumbnail": "https://lh3.googleusercontent.com/gps-proxy/ALd4DhGADIAxxjXlez1ItwLiIXvei2hoTIV9yhnwt0FPv1xqfRc6RERnca0aGGSrhqyu8alK3V5U8nEqt7i9KMsGR4QEE7BKEd0DjI6DLO-MKaO-DyH1EnxlNFzXYkNUOzyU9yKZb8Ix4kR1wsS0wjkEYL8hBFAYqoQG1HtElGLyHQprQYEKf9Qpf_E=w90-h90-n-k-no",
+      "place_id": "6094975359487809597",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=6094975359487809597&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.799683,
+        "longitude": -96.80068
+      },
+      "title": "The Standard Pour",
+      "type": "American",
+      "address": "2900 McKinney Ave",
+      "hours": "Closed ⋅ Opens 5 PM"
+    },
+    {
+      "position": 4,
+      "rating": 4.1,
+      "reviews": 1700,
+      "reviews_original": "(1.7K)",
+      "price": "$$",
+      "description": "\"Nice atmosphere, pet friendly, games, TV etc.\"",
+      "lsig": "AB86z5Usn9Zf3nh-J5Ko8Skcdp7-",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc1179f36e150cf3e6c95c85fdac64c3057c82840a57dab2a4.jpeg",
+      "place_id": "10759484681001502947",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=10759484681001502947&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.78563,
+        "longitude": -96.7891
+      },
+      "title": "Backyard",
+      "type": "Restaurant",
+      "address": "505 N Good Latimer Expy",
+      "hours": "Closed ⋅ Opens 5 PM"
+    },
+    {
+      "position": 5,
+      "rating": 4.6,
+      "reviews": 3900,
+      "reviews_original": "(3.9K)",
+      "price": "$10–20",
+      "description": "\"Live music, great environment, pet friendly.\"",
+      "lsig": "AB86z5WXLqHmc7y4ciS2rPgmfBcv",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc6410e137216cf731fdfad59bf4affb69e96d114219fb5690.jpeg",
+      "place_id": "17438484500024131192",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=17438484500024131192&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.814423,
+        "longitude": -96.771164
+      },
+      "title": "Truck Yard",
+      "type": "Beer Garden",
+      "address": "5624 Sears St",
+      "hours": "Closed ⋅ Opens 4 PM"
+    },
+    {
+      "position": 6,
+      "rating": 4.4,
+      "reviews": 1700,
+      "reviews_original": "(1.7K)",
+      "price": "$20–30",
+      "description": "\"Dog friendly patio on Henderson!\"",
+      "lsig": "AB86z5UuXRCPOEf-vpEzh-V5Qp2Z",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fcef2b17be48ebaa2a6f132af2436e32b754ef50f12c9e898f.jpeg",
+      "place_id": "4072444847476452594",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=4072444847476452594&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.820633,
+        "longitude": -96.78482
+      },
+      "title": "The Porch",
+      "type": "American",
+      "address": "2912 N Henderson Ave",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 7,
+      "rating": 4.3,
+      "reviews": 204,
+      "reviews_original": "(204)",
+      "price": "$20–30",
+      "description": "\"Amazing food, great atmosphere, dog friendly patio with misted fans;\"",
+      "lsig": "AB86z5WwPBz6rMi1e5y_Sc03g2gk",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fce2fc0ffc7dcb40b8140a2edaf6dcb966c3063e58dd9e313e.jpeg",
+      "place_id": "15294203006529998433",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=15294203006529998433&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.811794,
+        "longitude": -96.76992
+      },
+      "title": "River Pig Saloon",
+      "type": "Restaurant",
+      "address": "1720 Greenville Ave",
+      "hours": "Closed ⋅ Opens 2 PM"
+    },
+    {
+      "position": 8,
+      "rating": 4.5,
+      "reviews": 1900,
+      "reviews_original": "(1.9K)",
+      "price": "$10–20",
+      "description": "\"Great atmosphere, really good food and drink, and dog friendly.\"",
+      "lsig": "AB86z5Vs2vx__XdvAa8-DmLQCuSh",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc2a9b23c8bf788fb500351e18af33ddccfa282f9addc89005.jpeg",
+      "place_id": "1511566991307555498",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=1511566991307555498&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.78309,
+        "longitude": -96.78445
+      },
+      "title": "Dot's Hop House & Cocktail Courtyard",
+      "type": "Bar",
+      "address": "2645 Commerce St",
+      "hours": "Closed ⋅ Opens 4 PM"
+    },
+    {
+      "position": 9,
+      "rating": 4.7,
+      "reviews": 1200,
+      "reviews_original": "(1.2K)",
+      "price": "$20–30",
+      "description": "\"#ForeverDog Dog friendly on the patio!\"",
+      "lsig": "AB86z5Ux0EHVp6DcU5Oc6FYEd8jN",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fcefe640f6569b9602d1d40821f36a6e49bfa7ed343194b637.jpeg",
+      "place_id": "2619498123847184074",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=2619498123847184074&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.820896,
+        "longitude": -96.78559
+      },
+      "title": "Smithy on Henderson",
+      "type": "American",
+      "address": "2927 N Henderson Ave",
+      "hours": "Closed ⋅ Opens 10 AM Fri"
+    },
+    {
+      "position": 10,
+      "rating": 4.4,
+      "reviews": 3700,
+      "reviews_original": "(3.7K)",
+      "price": "$20–30",
+      "description": "\"Great atmosphere if you sit outside and a great dog friendly place.\"",
+      "lsig": "AB86z5XjWx8xv9w8qvHm2WXI5FK9",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc103c443342d191d9da621b3414e7d4ac3248a155eaa27c8e.jpeg",
+      "place_id": "9355680968067611825",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=9355680968067611825&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.95122,
+        "longitude": -96.820885
+      },
+      "title": "Lazy Dog Restaurant & Bar",
+      "type": "American",
+      "address": "Addison, TX",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 11,
+      "rating": 4.7,
+      "reviews": 1200,
+      "reviews_original": "(1.2K)",
+      "price": "$20–30",
+      "description": "\"Ic you like local, upbeat music... this will be your new, very crowded ...\"",
+      "lsig": "AB86z5UwmHKaFcEBT4hccG7DaheU",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc11142d30298373384859ec7cb812a316ff0c3777bce94e78.jpeg",
+      "place_id": "14465844950883555042",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=14465844950883555042&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.81213,
+        "longitude": -96.753334
+      },
+      "title": "The Balcony Club",
+      "type": "Jazz",
+      "address": "1825 Abrams Rd Suite B",
+      "hours": "Closed ⋅ Opens 6 PM"
+    },
+    {
+      "position": 12,
+      "rating": 4.6,
+      "reviews": 1200,
+      "reviews_original": "(1.2K)",
+      "price": "$10–20",
+      "description": "\"Dog-friendly, super laid back, and great live music.\"",
+      "lsig": "AB86z5UvCWQtlP5N4DVnNsKWcmvV",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc701ac5d950e53f0e75a37bec06abb139796672e9badfe803.jpeg",
+      "place_id": "14706001805226900883",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=14706001805226900883&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.76796,
+        "longitude": -96.78958
+      },
+      "title": "Lee Harvey's",
+      "type": "Restaurant",
+      "address": "1807 Gould St",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 13,
+      "rating": 4.5,
+      "reviews": 2700,
+      "reviews_original": "(2.7K)",
+      "price": "$10–20",
+      "description": "\"Delicious burgers & dogs (and beer) Fun, eclectic vibe.\"",
+      "lsig": "AB86z5V6oeerciq3vDuYg6dyOFKj",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fcf6138692ad7e0459d99a8a58e02dae3a93d2e76c1109e8c4.jpeg",
+      "place_id": "4534473310620870195",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=4534473310620870195&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.782887,
+        "longitude": -96.78356
+      },
+      "title": "Angry Dog",
+      "type": "Grill",
+      "address": "2726 Commerce St",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 14,
+      "rating": 4.2,
+      "reviews": 2300,
+      "reviews_original": "(2.3K)",
+      "price": "$$",
+      "description": "\"Nice atmosphere, open and airy, Cute outside patio, dog friendly.\"",
+      "lsig": "AB86z5UhrzY6YTUQ3h0fvkHWSOEQ",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc44008633b722b4551d218a5abf890f8a2a774dd097eac49a.jpeg",
+      "place_id": "12548860958160424169",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=12548860958160424169&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.747547,
+        "longitude": -96.82798
+      },
+      "title": "Paradiso",
+      "type": "Italian",
+      "address": "308 N Bishop Ave",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 15,
+      "rating": 4.4,
+      "reviews": 1200,
+      "reviews_original": "(1.2K)",
+      "price": "$20–30",
+      "description": "\"Loved the atmosphere, and the fact that they’re dog friendly.\"",
+      "lsig": "AB86z5W1wNnf4twwrU7QrNKkMf9Y",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc7bbad0fc47caafda00fad6889ffd5ddc3ea9f2db594bcf7a.jpeg",
+      "place_id": "1910042050374425409",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=1910042050374425409&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.82664,
+        "longitude": -96.78526
+      },
+      "title": "Chelsea Corner",
+      "type": "American",
+      "address": "4830 McKinney Ave",
+      "hours": "Closed ⋅ Opens 4 PM"
+    },
+    {
+      "position": 16,
+      "rating": 4.6,
+      "reviews": 7800,
+      "reviews_original": "(7.8K)",
+      "price": "$10–20",
+      "description": "\"Gorgeous dog friendly patio.\"",
+      "lsig": "AB86z5WF6N1CRiQFOYoR5APIcCSj",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc3bb98a7cf63a5673a1008d4336aca2eaccd9b3780e77aa43.jpeg",
+      "place_id": "4514212626990944752",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=4514212626990944752&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.797203,
+        "longitude": -96.824
+      },
+      "title": "Rodeo Goat",
+      "type": "Hamburger",
+      "address": "1926 Market Center Blvd",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 17,
+      "rating": 4.2,
+      "reviews": 467,
+      "reviews_original": "(467)",
+      "price": "$10–20",
+      "description": "\"Dogs and burgers are worth it.\"",
+      "lsig": "AB86z5XCiEs9peSkfcyGB_jhxri5",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fcfb6a91d64fd81a0e9d3fc8fb4e1c7d73a4f4ff40520fdf80.jpeg",
+      "place_id": "4518426483471592675",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=4518426483471592675&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.83158,
+        "longitude": -96.77032
+      },
+      "title": "Life’s Good Bar & Grill",
+      "type": "Grill",
+      "address": "3619 Greenville Ave",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 18,
+      "rating": 4.5,
+      "reviews": 456,
+      "reviews_original": "(456)",
+      "price": "$10–20",
+      "description": "\"The place is not big and there was live Music when we were there.\"",
+      "lsig": "AB86z5V6vw94IfgTTbDx9coVeXfp",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc520ef1de347430b1bc27c3c656ba47aa1c5c6960c67ff7b5.jpeg",
+      "place_id": "15937368186850092120",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=15937368186850092120&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.779976,
+        "longitude": -96.7995
+      },
+      "title": "Rodeo Bar",
+      "type": "American",
+      "address": "1321 Commerce St",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 19,
+      "rating": 4.5,
+      "reviews": 1700,
+      "reviews_original": "(1.7K)",
+      "price": "$$",
+      "description": "\"They even have a great patio and allow my pups hang out too.\"",
+      "lsig": "AB86z5VpyAOYa5ttnAM2eRzl4wuy",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc7a2b2c5976c2bc49d08f6307d1d655d39e6bb4df009d5576.jpeg",
+      "place_id": "14966397862374891819",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=14966397862374891819&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.797523,
+        "longitude": -96.80265
+      },
+      "title": "Las Palmas Tex-Mex",
+      "type": "Tex Mex",
+      "address": "2708 Routh St",
+      "hours": "Closed ⋅ Opens 11 AM"
+    },
+    {
+      "position": 20,
+      "rating": 4.3,
+      "reviews": 5500,
+      "reviews_original": "(5.5K)",
+      "price": "$20–30",
+      "description": "\"Outdoor seating is dog friendly.\"",
+      "lsig": "AB86z5U1mr0OnNkkVZz5YyNOUpV8",
+      "thumbnail": "https://serpapi.com/searches/67f3db11adb5e4e6fc7b8bc2/images/2198f8673a9894fc191fbf14045f62d4d61b354e9dd14ced645a9e6912c0d3d1.jpeg",
+      "place_id": "3134280489049920849",
+      "place_id_search": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&ludocid=3134280489049920849&q=pet-friendly+restaurants+with+live+music+in+Dallas",
+      "gps_coordinates": {
+        "latitude": 32.804913,
+        "longitude": -96.79421
+      },
+      "title": "The Rustic",
+      "type": "American",
+      "address": "3656 Howell St",
+      "hours": "Closed ⋅ Opens 11 AM"
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "next": "https://www.google.com/search?q=pet-friendly+restaurants+with+live+music+in+Dallas&hl=en&gl=us&start=20&tbm=lcl",
+    "other_pages": {
+      "2": "https://www.google.com/search?q=pet-friendly+restaurants+with+live+music+in+Dallas&hl=en&gl=us&start=20&tbm=lcl",
+      "3": "https://www.google.com/search?q=pet-friendly+restaurants+with+live+music+in+Dallas&hl=en&gl=us&start=40&tbm=lcl",
+      "4": "https://www.google.com/search?q=pet-friendly+restaurants+with+live+music+in+Dallas&hl=en&gl=us&start=60&tbm=lcl",
+      "5": "https://www.google.com/search?q=pet-friendly+restaurants+with+live+music+in+Dallas&hl=en&gl=us&start=80&tbm=lcl"
+    }
+  },
+  "serpapi_pagination": {
+    "current": 1,
+    "next_link": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&q=pet-friendly+restaurants+with+live+music+in+Dallas&start=20",
+    "next": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&q=pet-friendly+restaurants+with+live+music+in+Dallas&start=20",
+    "other_pages": {
+      "2": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&q=pet-friendly+restaurants+with+live+music+in+Dallas&start=20",
+      "3": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&q=pet-friendly+restaurants+with+live+music+in+Dallas&start=40",
+      "4": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&q=pet-friendly+restaurants+with+live+music+in+Dallas&start=60",
+      "5": "https://serpapi.com/search.json?device=desktop&engine=google_local&gl=us&google_domain=google.com&hl=en&location=Dallas%2C+Texas%2C+United+States&q=pet-friendly+restaurants+with+live+music+in+Dallas&start=80"
+    }
+  }
+}

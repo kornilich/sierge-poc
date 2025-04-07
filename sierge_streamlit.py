@@ -17,11 +17,12 @@ import agents.prompts as prmt
 import json
 
 from agents.tools import ActivitiesList
-
+import agents.tools as tools_set
 
 class slCallbackHandler(StreamlitCallbackHandler):
     def on_chat_model_start(self, serialized, messages, **kwargs):
         return self.on_llm_start(serialized=serialized, prompts=messages, **kwargs)
+        
 
 # Progress callback wrapper
 def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
@@ -94,14 +95,6 @@ def streamlit_config():
             number_of_results = st.slider(
                 "Number of results", min_value=5, max_value=20, value=5)
 
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
-                 use_container_width=True)
-    with col2:
-        st.header(":blue[Sierge PoC]")
-        st.write("Tailor recommendations in real time based on logistics, constraints, and external conditions like time availability, budget, location, and weather. They ensure that experiences are practical, feasible, and aligned with current circumstances without altering core user preferences.")
-
     return {
         "contextual_preferences": contextual_preferences,
         "fixed_preferences": fixed_preferences,
@@ -119,7 +112,13 @@ settings = streamlit_config()
 
 load_environment()
 
-agent = SimpleAgent(settings)
+tools = [
+    tools_set.web_search,
+    tools_set.events_search,
+    tools_set.local_search
+]
+
+agent = SimpleAgent(tools, settings)
 agent.setup()
 
 chat_input = st.chat_input("Describe your situational preferences here...")
@@ -156,11 +155,11 @@ if chat_input:
                     if 'tool_calls' in msg.additional_kwargs:
                         for tool_call in msg.additional_kwargs['tool_calls']:
                             fn = tool_call["function"]
-                            if fn["name"] == "web_search":
+                            if fn["name"] in ["web_search", "events_search", "local_search"]:
                                 query = json.loads(fn["arguments"])
                                 query_text = query.get("query", "")
 
-                                st.markdown(f"**Searching:** {query_text}")
+                                st.markdown(f"Decided to use **{fn['name']}** ({query_text})")
                             else:
                                 st.write("Tool:", fn["name"], msg.content)
                     elif 'structured_output' in msg.additional_kwargs:
@@ -173,17 +172,14 @@ if chat_input:
                     else:
                         st.write("AIMessage:", msg.content)
         elif isinstance(msg, ToolMessage):
-            if msg.name == "web_search":
-                with st.chat_message("Search resutls", avatar=":material/manage_search:"):
+            if msg.name in ["web_search", "events_search", "local_search"]:
+                with st.chat_message("Search resutls role", avatar=":material/manage_search:"):
                     json_content = json.loads(msg.content)
-                    title = json_content.get("search_metadata", {}).get("google_url", "")                    
-                    if title:   
-                        title = "Search results \n" + title
-                    else:
-                        title = "Search results"
-                        
-                    st.expander(title).json(
-                        json_content, expanded=True)
+                    for search_type, results in json_content.items():                        
+                        st.markdown(
+                            f"**{msg.name} results** (<a href='{results.get('search_url', '')}' target='_blank'>{results.get('search_query', '')}</a>)", unsafe_allow_html=True)
+                        with st.expander(f"Search results: {search_type} ({len(results.get('search_results', []))})"):
+                            st.json(results.get("search_results", {}), expanded=True)
             else:
                 st.write(msg)
         else:
@@ -200,15 +196,25 @@ if chat_input:
     #     )
     # )
 else:  # Default page view
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
+                 use_container_width=True)
+    with col2:
+        st.header(":blue[Sierge PoC]")
+        st.write(settings["agent_description"].format(location=settings["location"]))
+
     col1, col2 = st.columns([2, 2])
     img = agent.runnable.get_graph().draw_png()
     with col1:
         st.image(img, width=400, caption="Agent architecture")
     with col2:
-        st.subheader(":gray[Agent description]")
-        st.write(settings["agent_description"])
-        st.write(settings["tools_instructions"])
-        st.subheader(":gray[Summarize prompt]")
-        st.write(settings["summarize_instructions"])
-    # schema = ActivitiesListByCategory.model_json_schema()
-    # st.write(schema)
+        st.subheader(":gray[Available tools]")
+        st.write("Tool name and instructions for the agent on when and how to use it")
+        for tool in agent.tools:
+            st.markdown(f"**{tool.name}**: {tool.description}")
+
+        # st.subheader(":gray[Tools usage instructions]")
+        # st.write(settings["tools_instructions"])
+        # st.write(settings["summarize_instructions"])
+        

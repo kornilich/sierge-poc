@@ -1,0 +1,418 @@
+{
+  "search_metadata": {
+    "id": "67f3c45d13ac980e09ae7be2",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/44217360fb729895/67f3c45d13ac980e09ae7be2.json",
+    "created_at": "2025-04-07 12:26:05 UTC",
+    "processed_at": "2025-04-07 12:26:05 UTC",
+    "google_events_url": "https://www.google.com/search?q=live+music+events+in+Dallas&ibp=htl;events&uule=w+CAIQICIaRGFsbGFzLFRleGFzLFVuaXRlZCBTdGF0ZXM",
+    "raw_html_file": "https://serpapi.com/searches/44217360fb729895/67f3c45d13ac980e09ae7be2.html",
+    "total_time_taken": 0.5
+  },
+  "search_parameters": {
+    "q": "live music events in Dallas",
+    "engine": "google_events",
+    "location_requested": "Dallas, Texas, United States",
+    "location_used": "Dallas,Texas,United States"
+  },
+  "search_information": {
+    "events_results_state": "Results for exact spelling"
+  },
+  "events_results": [
+    {
+      "title": "Dallas Live Music Series: Engaging Our Community with the Arts in our Parks",
+      "date": {
+        "start_date": "Apr 17",
+        "when": "Thu, Apr 17, 6:30 – 8:00 PM"
+      },
+      "address": [
+        "Kiest Park, 3080 S Hampton Rd",
+        "Dallas, TX"
+      ],
+      "link": "https://allevents.in/dallas/dallas-live-music-series-engaging-our-community-with-the-arts-in-our-parks/100001281063117269",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=QD-pxlJxflKpW_Y2nH9RcczO6gJQFUXCsokAbtb0lubJ1clmegS5s0ZXY9X9hYNFzFRUM50MRwtFoH47EnWoMaVqVcJ3DKscriJKe3lcLgwTAleU8OE",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864e90a05c37d9c5:0xa58f1e4f27761d8?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIAhAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864e90a05c37d9c5%3A0xa58f1e4f27761d8&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "description": "Come join us for the Dallas Live Music Series where we bring our community together through the power of music and art in our local parks! About this Event Dallas Live Music Series: Engaging Our...",
+      "ticket_info": [
+        {
+          "source": "Allevents.in",
+          "link": "https://allevents.in/dallas/dallas-live-music-series-engaging-our-community-with-the-arts-in-our-parks/100001281063117269",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Eventbrite.com",
+          "link": "https://www.eventbrite.com/e/dallas-live-music-series-engaging-our-community-with-the-arts-in-our-parks-tickets-1281063117269",
+          "link_type": "tickets"
+        }
+      ],
+      "venue": {
+        "name": "Kiest Park",
+        "rating": 4.5,
+        "reviews": 3108,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=Kiest+Park&ludocid=745611703952564696&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzlBIDQYaL2oNtj20E4H0eB0OyuWFt4LK8H1upNyF-WE4L3hgFl2qtEfg&s",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-OMfWdSAdh0VG1UvblDbh2l0RGQ33fsqhZQ2mIrSVpQ&s=10"
+    },
+    {
+      "title": "CityLine LIVE featuring RCN Jazz Band",
+      "date": {
+        "start_date": "Apr 12",
+        "when": "Sat, Apr 12, 1 – 4 PM"
+      },
+      "address": [
+        "CityLine Plaza, 1150 State St",
+        "Richardson, TX"
+      ],
+      "link": "https://citylinedfw.com/events/cityline-live-featuring-rcn-jazz-band-3/",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=Cb5d1YXtSXBvkDjgViYV8w8mLiNRT-EW4eRjJVcUnYnrLJ37Sh5Bs6EuZHs1-jFH6H1UMuEjXa0ZL7ilehh19dzULjty5GQnNH6qVCv453dPvPqnXnE",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864c19260893cc27:0xf3a4cde00a23ef4c?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIChAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864c19260893cc27%3A0xf3a4cde00a23ef4c&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "description": "Enjoy free live music every Friday and Saturday this spring at CityLine’s outdoor plaza with great tunes, patio dining, and a lively atmosphere. Up next: RCN Jazz Band on Saturday, April 12th!",
+      "ticket_info": [
+        {
+          "source": "Eventbrite.com",
+          "link": "https://www.eventbrite.com/e/cityline-night-market-live-music-tickets-1291745879699",
+          "link_type": "tickets"
+        },
+        {
+          "source": "CityLine DFW",
+          "link": "https://citylinedfw.com/events/cityline-live-featuring-rcn-jazz-band-3/",
+          "link_type": "more info"
+        },
+        {
+          "source": "Patch",
+          "link": "https://patch.com/texas/dallas-ftworth/calendar/event/20250412/cbb7c0ea-17f1-402e-b216-808712aba81e/cityline-live-featuring-rcn-jazz-band-and-night-market",
+          "link_type": "more info"
+        },
+        {
+          "source": "Do214",
+          "link": "https://do214.com/events/2025/4/12/cityline-live-featuring-rcn-jazz-band-tickets",
+          "link_type": "more info"
+        }
+      ],
+      "venue": {
+        "name": "CityLine Plaza",
+        "rating": 4.8,
+        "reviews": 35,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=CityLine+Plaza&ludocid=17556383609523531596&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRc8yn_dFQ5amrVq46_f6pfyQmzTS8VR8LoSRRpsbMg9Dz3crYhB-zNvak&s",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQf0LKPB0gIzAzo4Vd6mew2ParDOUlQMRBGW19KePyYSO6EFTtv7yriq__ZkA&s=10"
+    },
+    {
+      "title": "Live Music Series",
+      "date": {
+        "start_date": "Apr 12",
+        "when": "Sat, Apr 12, 5 PM"
+      },
+      "address": [
+        "Legacy West, 5908 Headquarters Dr",
+        "Plano, TX"
+      ],
+      "link": "https://do214.com/events/2025/4/12/legacy-west-live-music-series-tickets",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=5PdNFsSIgTVXkFBJUpeBKFWjAYl2AbSzvZFEuRwxgtIXniwdXe0gJeBeIiPE-XxaCK6xmwfyJFL-oG0fwCwe_fhjasWn2C5BS7z8kG6Z3cr3zTT5q0w",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864c3cb3b7db18f1:0xd61719f6b7b65199?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIEhAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864c3cb3b7db18f1%3A0xd61719f6b7b65199&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "description": "Enjoy live music from Kirk Thurmond at Legacy West! Stop by in front Free People on Saturday, April 12th! Learn More",
+      "ticket_info": [
+        {
+          "source": "Do214",
+          "link": "https://do214.com/events/2025/4/12/legacy-west-live-music-series-tickets",
+          "link_type": "more info"
+        }
+      ],
+      "venue": {
+        "name": "Legacy West",
+        "rating": 4.7,
+        "reviews": 7393,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=Legacy+West&ludocid=15426827596015751577&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://www.google.com/maps/vt/data=5PdNFsSIgTVXkFBJUpeBKFWjAYl2AbSzvZFEuRwxgtIXniwdXe0gJeBeIiPE-XxaCK6xmwfyJFL-oG0fwCwe_fhjasWn2C5BS7z8kG6Z3cr3zTT5q0w"
+    },
+    {
+      "title": "Live Music",
+      "date": {
+        "start_date": "Apr 9",
+        "when": "Wed, Apr 9, 11 AM"
+      },
+      "address": [
+        "Truck Yard, 5959 Grove Ln",
+        "The Colony, TX"
+      ],
+      "link": "https://visitthecolonytx.com/Calendar.aspx?EID=7297&month=4&year=2025&day=2&calType=0",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=2ZZyxvZz4a549k3Uk-3fysbCnEW-5TKornN5wvw95ZTT9iOLqUEiytdln4AgCnP4WUPNWCFgNmRSMPlZ9gVAezGbsvYDaeGgqQ88wFz8p7-7RISUgdE",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864c3b109878dcdf:0xde6bc0e3a8f7c0e6?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIGhAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864c3b109878dcdf%3A0xde6bc0e3a8f7c0e6&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "ticket_info": [
+        {
+          "source": "Visit The Colony, TX",
+          "link": "https://visitthecolonytx.com/Calendar.aspx?EID=7297&month=4&year=2025&day=2&calType=0",
+          "link_type": "more info"
+        },
+        {
+          "source": "Visit The Colony, TX",
+          "link": "https://visitthecolony.com/Calendar.aspx?EID=7297",
+          "link_type": "more info"
+        }
+      ],
+      "venue": {
+        "name": "Truck Yard",
+        "rating": 4.6,
+        "reviews": 3723,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=Truck+Yard&ludocid=16027115782952960230&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIMcPVKKfWRR9LB9koLpTtLhuzAFrF10KFM738dLNOScdpIv6-aLWlQ3Q&s",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqTACutFATVzysU6egZx3-vvzHgs-AdEX3msLu1zmmjw&s=10"
+    },
+    {
+      "title": "Live Music",
+      "date": {
+        "start_date": "Apr 8",
+        "when": "Tue, Apr 8, 11 AM"
+      },
+      "address": [
+        "Truck Yard, 5959 Grove Ln",
+        "The Colony, TX"
+      ],
+      "link": "https://visitthecolonytx.com/Calendar.aspx?EID=7296",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=2ZZyxvZz4a549k3Uk-3fysbCnEW-5TKornN5wvw95ZTT9iOLqUEiytdln4AgCnP4WUPNWCFgNmRSMPlZ9gVAezGbsvYDaeGgqQ88wFz8p7-7RISUgdE",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864c3b109878dcdf:0xde6bc0e3a8f7c0e6?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIIhAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864c3b109878dcdf%3A0xde6bc0e3a8f7c0e6&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "ticket_info": [
+        {
+          "source": "Visit The Colony, TX",
+          "link": "https://visitthecolonytx.com/Calendar.aspx?EID=7296",
+          "link_type": "more info"
+        },
+        {
+          "source": "Visit The Colony, TX",
+          "link": "https://visitthecolony.com/calendar.aspx?PREVIEW=YES&EID=7296",
+          "link_type": "more info"
+        }
+      ],
+      "venue": {
+        "name": "Truck Yard",
+        "rating": 4.6,
+        "reviews": 3723,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=Truck+Yard&ludocid=16027115782952960230&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIMcPVKKfWRR9LB9koLpTtLhuzAFrF10KFM738dLNOScdpIv6-aLWlQ3Q&s",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqTACutFATVzysU6egZx3-vvzHgs-AdEX3msLu1zmmjw&s=10"
+    },
+    {
+      "title": "Live Music",
+      "date": {
+        "start_date": "Apr 18",
+        "when": "Fri, Apr 18, 3 – 6 PM"
+      },
+      "address": [
+        "Dallas Farmers Market Produce Shed, 123 Taylor St",
+        "Dallas, TX"
+      ],
+      "link": "https://dallasfarmersmarket.org/event/the-market-happy-hours-rexs-seafood-market/2025-04-18/",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=SFJnYees00EOBoG5Sx4hMhA_ZMIuIeSjIwoUXiita7Z_zPonLit9lQwsn_73LzIZIlX44k1HITotuA2B6ceayPQUml0hOC5ZSViu2YyuY4mXUtAGyu0",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864e9941add73a45:0x5fa8ad13cc8b5c53?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIKhAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864e9941add73a45%3A0x5fa8ad13cc8b5c53&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "description": "Why limit happy to an hour? Check out The Market Happy Hours, enjoy and thank you for supporting small businesses! ♥ HAPPY HOUR SPECIALS: REX’S SEAFOOD & MARKET MONDAY – FRIDAY 3-6PM $2 off...",
+      "ticket_info": [
+        {
+          "source": "The Market Happy Hours – Rex's Seafood & Market - Dallas Farmers Market",
+          "link": "https://dallasfarmersmarket.org/event/the-market-happy-hours-rexs-seafood-market/2025-04-18/",
+          "link_type": "more info"
+        }
+      ],
+      "venue": {
+        "name": "Dallas Farmers Market Produce Shed",
+        "rating": 4.7,
+        "reviews": 67,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=Dallas+Farmers+Market+Produce+Shed&ludocid=6892949530238213203&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSevpMW7o9waa2kdDwTCVrGKOb4X0LbCHD9Ote5JCs&s",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF4hrlPQZ__CIR2HxfNoaWkPkoV4TvFyrYwOT1700Qhw&s=10"
+    },
+    {
+      "title": "Live Music at Sandy Pickle-Colton Blue",
+      "date": {
+        "start_date": "Apr 20",
+        "when": "Sun, Apr 20, 2 – 5 PM"
+      },
+      "address": [
+        "The Sandy Pickle - The Village Dallas, 5683 Village Glen Dr",
+        "Dallas, TX"
+      ],
+      "link": "https://www.thevillagedallas.com/event/live-music-at-sandy-pickle-colton-blue-3/2025-04-20/",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=5pLSTh5CKycorb8AwxrddlgEf5vpyHHTlRS4wCcvvEkLfoNdZQmXvmhrP8hqjsA7p12pmBOdOlwHLXO8LIklrqE3wv6_vN9XDHmOpfAYPL3__azROlk",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864e9f2605e973ef:0x42b4af2233cb9129?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIMhAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864e9f2605e973ef%3A0x42b4af2233cb9129&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "description": "Enjoy live music while you sip cocktails courtside and soak up the weekend at Sandy Pickle from 2-5PM! Don’t miss out on the fun – see you there!",
+      "ticket_info": [
+        {
+          "source": "The Village Dallas",
+          "link": "https://www.thevillagedallas.com/event/live-music-at-sandy-pickle-colton-blue-3/2025-04-20/",
+          "link_type": "more info"
+        }
+      ],
+      "venue": {
+        "name": "The Sandy Pickle - The Village Dallas",
+        "rating": 4.4,
+        "reviews": 114,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=The+Sandy+Pickle+-+The+Village+Dallas&ludocid=4806659263743889705&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://www.google.com/maps/vt/data=5pLSTh5CKycorb8AwxrddlgEf5vpyHHTlRS4wCcvvEkLfoNdZQmXvmhrP8hqjsA7p12pmBOdOlwHLXO8LIklrqE3wv6_vN9XDHmOpfAYPL3__azROlk"
+    },
+    {
+      "title": "Live Music at Sandy Pickle- Ashley Ewing",
+      "date": {
+        "start_date": "Apr 19",
+        "when": "Sat, Apr 19, 2 – 5 PM"
+      },
+      "address": [
+        "The Sandy Pickle - The Village Dallas, 5683 Village Glen Dr",
+        "Dallas, TX"
+      ],
+      "link": "https://www.thevillagedallas.com/event/live-music-at-sandy-pickle-ashley-ewing/2025-04-19/",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=5pLSTh5CKycorb8AwxrddlgEf5vpyHHTlRS4wCcvvEkLfoNdZQmXvmhrP8hqjsA7p12pmBOdOlwHLXO8LIklrqE3wv6_vN9XDHmOpfAYPL3__azROlk",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864e9f2605e973ef:0x42b4af2233cb9129?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIOhAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864e9f2605e973ef%3A0x42b4af2233cb9129&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "description": "Enjoy live music while you sip cocktails courtside and soak up the weekend at Sandy Pickle from 2-5PM! Don’t miss out on the fun – see you there!",
+      "ticket_info": [
+        {
+          "source": "The Village Dallas",
+          "link": "https://www.thevillagedallas.com/event/live-music-at-sandy-pickle-ashley-ewing/2025-04-19/",
+          "link_type": "more info"
+        }
+      ],
+      "venue": {
+        "name": "The Sandy Pickle - The Village Dallas",
+        "rating": 4.4,
+        "reviews": 114,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=The+Sandy+Pickle+-+The+Village+Dallas&ludocid=4806659263743889705&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://www.google.com/maps/vt/data=5pLSTh5CKycorb8AwxrddlgEf5vpyHHTlRS4wCcvvEkLfoNdZQmXvmhrP8hqjsA7p12pmBOdOlwHLXO8LIklrqE3wv6_vN9XDHmOpfAYPL3__azROlk"
+    },
+    {
+      "title": "Black Violin",
+      "date": {
+        "start_date": "May 4",
+        "when": "Sun, May 4, 6:59 – 9:00 PM"
+      },
+      "address": [
+        "Majestic Theater, 1925 Elm St",
+        "Dallas, TX"
+      ],
+      "link": "https://www.dallas-theater.com/shows/majestic-theater/black-violin",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=mJEYOZXebbw48MhMq1cfGVAdNxbGmysPStxjyso9hZqRhWEl0Zl4Kv_iR2gKt2ipHhbOufwzqEPltphigsflnKWy9TWduCgNMW8qsnGETlMs_jjXhFU",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864e9921d7ebaded:0xc6fc15382f204b75?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIQhAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864e9921d7ebaded%3A0xc6fc15382f204b75&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "description": "Classical music meets hip-hop in the groundbreaking duo Black Violin are heading out on tour! This outing that blurs the lines between genre, race, and gender with its unique fusion of groove and...",
+      "ticket_info": [
+        {
+          "source": "Spotify.com",
+          "link": "https://open.spotify.com/concert/3nq6KWdsv5wK2XrIWCnlz2",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Axs.com",
+          "link": "https://www.axs.com/events/764563/black-violin-tickets",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Seatgeek.com",
+          "link": "https://seatgeek.com/black-violin-tickets/classical/2025-05-04-7-30-pm/17259593?gclsrc=%7BGOOGLE-ADS-CLICK-SOURCE%7D&refob=mta&ref_price=83.00",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Bandsintown.com",
+          "link": "https://www.bandsintown.com/e/106129722?app_id=ggl_feed&came_from=289&utm_medium=web&utm_source=ggl_feed&utm_campaign=event",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Viagogo.com",
+          "link": "https://www.viagogo.com/_C-37459?pcid=PSUSAEVECONALLEF426C5CF9E&ps_p=8&ps_placement=eventfeed&ps=vn-67155%7Cev-156207386%7Ccy-79606&ps_ev=156207386",
+          "link_type": "tickets"
+        }
+      ],
+      "venue": {
+        "name": "Majestic Theater",
+        "rating": 4.7,
+        "reviews": 3745,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=Majestic+Theater&ludocid=14338358644693814133&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnVPiTah9A17e_bVxh25Oi_nVs6TwF88vwevFpxVfWZA3-VR0jBRqGx5w&s",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTc3cDb95lSdyI990uxrOGZEw0UVt4cPoSdyn4g__bW1Z61ML8wgkhnErnRlw&s=10"
+    },
+    {
+      "title": "Judah & The Lion",
+      "date": {
+        "start_date": "Apr 22",
+        "when": "Tue, Apr 22, 6:30 – 10:30 PM"
+      },
+      "address": [
+        "House of Blues Restaurant & Bar, 2200 N Lamar St",
+        "Dallas, TX"
+      ],
+      "link": "https://open.spotify.com/concert/6jIQP90aiOl2EehciWjXft",
+      "event_location_map": {
+        "image": "https://www.google.com/maps/vt/data=TQI-llUldGDyy1T3AwG25prRWKigiP6qtman4DevnI60TyTv7d1-RZVstkT68_spC63vA-D3rdi7C9Clw_LBWdoRl3W1reeVJ9U_jH6yzHyDG-iXI20",
+        "link": "https://www.google.com/maps/place//data=!4m2!3m1!1s0x864e993c26cd07cd:0xa572cb4a4a3495ab?sa=X&ved=2ahUKEwi0prm49cWMAxUxMlkFHY0dCa4Q9eIBegQIShAA",
+        "serpapi_link": "https://serpapi.com/search.json?data=%214m2%213m1%211s0x864e993c26cd07cd%3A0xa572cb4a4a3495ab&engine=google_maps&google_domain=google.com&hl=en&q=live+music+events+in+Dallas&type=place"
+      },
+      "description": "Find tickets for Judah & the Lion at House of Blues Dallas in Dallas on 4/22/2025 at 6:30 PM",
+      "ticket_info": [
+        {
+          "source": "Spotify.com",
+          "link": "https://open.spotify.com/concert/6jIQP90aiOl2EehciWjXft",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Axs.com",
+          "link": "https://www.axs.com/events/821140/judah-and-the-lion-tickets",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Ticketmaster.com",
+          "link": "https://ticketmaster.evyy.net/c/253185/264167/4272?SharedId=DoStuff&u=https%3A%2F%2Fconcerts.livenation.com%2Fjudah-the-lion-dallas-texas-04-22-2025%2Fevent%2F0C0062268DEF0F71",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Unation.com",
+          "link": "https://www.unation.com/event/judah-and-the-lion-57605024/",
+          "link_type": "tickets"
+        },
+        {
+          "source": "Dallas Theater",
+          "link": "https://www.dallas-theater.com/dates/2025/04/category/christian-music",
+          "link_type": "more info"
+        }
+      ],
+      "venue": {
+        "name": "House of Blues Restaurant & Bar",
+        "rating": 4.5,
+        "reviews": 7256,
+        "link": "https://www.google.com/search?sca_esv=7c1d8de2d50eae47&q=House+of+Blues+Restaurant+%26+Bar&ludocid=11921814683536102827&ibp=gwp%3B0,7"
+      },
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2jWvWsusos9bLK7ptNydY5exEUMxP7W3Jti2jas8Hj1OTOTqfrHmQvAE&s",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtbUK8e5tdEQSui-UE23dm43Hd4AHUWQ9ZyAQjUVUeeGq8YP8uZ4ol3YsGig&s=10"
+    }
+  ]
+}
