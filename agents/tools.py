@@ -131,7 +131,34 @@ shops, and services based on their query and current location."""
     
     return results
 
-def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types: List[str] = None, mock_file: str = None):
+
+@tool("yelp_search")
+def yelp_search(query: str, config: RunnableConfig):
+    """
+    Perform a Yelp search based on the given query and runtime configuration.
+
+    This function utilizes the Yelp API or similar search tools to retrieve 
+    information about restaurants, bars, nightlife, businesses or services based on the provided query. 
+    """
+    # TODO: Consider pagination vs number of results
+
+    result_types = [
+        "ads_results",
+        "organic_results",
+    ]
+    
+    cfg = config.get("configurable", {})
+    extra_params = {
+        "find_desc": query,
+        "find_loc": cfg["location"],
+    }
+
+    results = serpapi_search(query, "yelp", config, result_types, extra_params)
+    #  , mock_file = "mockups/serpapi-locals-1.json")
+
+    return results
+
+def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types: List[str] = None, extra_params: Dict[str, str] = None, mock_file: str = None):
     
     cfg = config.get("configurable", {})
     params = {
@@ -141,6 +168,9 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
         "num": cfg["number_of_results"],
         "q": query
     }
+    
+    if extra_params:
+        params.update(extra_params)
 
     results = {}
     if mock_file:
@@ -153,10 +183,13 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
     filtered_results = {}
 
     search_url = next((v for k, v in results.get("search_metadata", {}).items() if k.startswith("google") and k.endswith("_url")), "")
+    if search_url == "":
+        search_url = results.get("search_metadata", {}).get("yelp_url", "")
     
-    # if search_url == "":
-    #     search_url = results.get("search_metadata", {}).get("google_url", "")
     search_query = results.get("search_parameters", {}).get("q", "")
+    if search_query == "":
+        search_query = results.get("find_desc", {}).get("q", "")  # Yelp
+    
     if mock_file:
         search_query = "Mockup results"
 

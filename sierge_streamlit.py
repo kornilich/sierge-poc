@@ -115,7 +115,8 @@ load_environment()
 tools = [
     tools_set.web_search,
     tools_set.events_search,
-    tools_set.local_search
+    tools_set.local_search,
+    tools_set.yelp_search
 ]
 
 agent = SimpleAgent(tools, settings)
@@ -168,7 +169,7 @@ if chat_input:
                     if 'tool_calls' in msg.additional_kwargs:
                         for tool_call in msg.additional_kwargs['tool_calls']:
                             fn = tool_call["function"]
-                            if fn["name"] in ["web_search", "events_search", "local_search"]:
+                            if fn["name"] in [tool.name for tool in tools]:
                                 query = json.loads(fn["arguments"])
                                 query_text = query.get("query", "")
 
@@ -185,7 +186,7 @@ if chat_input:
                     else:
                         st.write("AIMessage:", msg.content)
         elif isinstance(msg, ToolMessage):
-            if msg.name in ["web_search", "events_search", "local_search"]:
+            if msg.name in [tool.name for tool in tools]:
                 with st.chat_message("Search resutls role", avatar=":material/manage_search:"):
                     json_content = json.loads(msg.content)
                     for search_type, results in json_content.items():                        
