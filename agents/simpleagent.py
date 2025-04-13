@@ -7,19 +7,22 @@ from langgraph.graph import START, END
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import MessagesState
 from langchain_core.runnables import RunnableConfig
-from agents.prompts import agent_system_prompt
+from langchain_core.prompts import PromptTemplate
+import agents.prompts as prmt
 
-import agents.tools as tools_set
-from agents.tools import ActivitiesList
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_openai import OpenAIEmbeddings
 
 
 class SimpleAgent:
     def __init__(self, tools, settings):
-        self.agent_description = settings["agent_description"]
-        self.tools_instructions = settings["tools_instructions"]
+        self.system_common_prompt = settings["system_common_prompt"]
+        self.data_sources_prompt = settings["data_sources_prompt"]
         self.summarize_instructions = settings["summarize_instructions"]
-        self.search_limit = settings["search_limit"]
         self.gpt_model = settings["model"]
+
+        self.vector_store = InMemoryVectorStore(
+            OpenAIEmbeddings(model="text-embedding-3-small"))
 
         self.llm = ChatOpenAI(
             model=self.gpt_model,
@@ -28,35 +31,55 @@ class SimpleAgent:
         )
 
         self.tools = tools
-
-        self.tools_node = ToolNode(self.tools)
-        self.llm_agent = self.llm.bind_tools(self.tools, tool_choice="any")
+        self.llm_agent = self.llm.bind_tools(self.tools)
 
         # self.llm_summarize = self.llm.with_structured_output(
         #     ActivitiesList, method="json_mode")
 
         self.llm_summarize = self.llm
 
+    def get_system_prompt(self, prompt, config, web_search_count=0):
+        cfg = config.get('configurable', {})
+        location = cfg.get('location', '')
+        search_limit = cfg.get('search_limit', 0)
+
+        def _format_prompt(prompt, **kwargs):
+            # Count number of placeholders in the prompt
+            prompt_before = prompt
+
+            template = PromptTemplate.from_template(prompt)
+            result = template.format(**kwargs)
+
+            if prompt_before != result:
+                result = _format_prompt(result, **kwargs)
+
+            return result
+
+        system_prompt = _format_prompt(prompt, commont_prompt=self.system_common_prompt,
+                                       data_sources_prompt=self.data_sources_prompt, location=location, search_limit=search_limit-web_search_count)
+
+        return system_prompt
+
     def agent_node(self, state: MessagesState, config: RunnableConfig):
         """LLM decides whether to call a tool or not"""
+        cfg = config.get('configurable', {})
+        search_limit = cfg.get('search_limit', 0)
 
         web_search_count = 0
         for msg in state["messages"]:
             if isinstance(msg, AIMessage):
                 for call in msg.additional_kwargs["tool_calls"]:
-                    if call["function"]["name"] in ["web_search", "events_search", "local_search"]:
+                    if call["function"]["name"] in [t.name for t in self.tools if t.name != "save_results"]:
                         web_search_count += 1
 
-        if web_search_count >= self.search_limit:
+        if web_search_count >= search_limit:
             return {"messages": state["messages"] +
-                    [AIMessage(content=f"Maximum search rounds reached ({self.search_limit}). Stopping.")]}
+                    [AIMessage(content=f"Maximum search rounds reached ({search_limit}). Stopping.")]}
 
+        system_prompt = self.get_system_prompt(
+            prmt.system_data_collection_prompt_template, config, web_search_count)
         msg_history = [
-            SystemMessage(content=agent_system_prompt.format(
-                agent_description=self.agent_description.format(
-                    location=config.get('configurable', {}).get('location', '')),
-                tools_instructions=self.tools_instructions,
-                search_limit=self.search_limit-web_search_count))
+            SystemMessage(content=system_prompt)
         ] + state["messages"]
 
         result = self.llm_agent.invoke(msg_history)
@@ -76,9 +99,9 @@ class SimpleAgent:
 
         new_messages.append(HumanMessage(
             content=human_message + "\n\n" + self.summarize_instructions))
-        new_messages.append(SystemMessage(content=self.agent_description.format(
-            location=config.get('configurable', {}).get('location', '')
-        )))
+        new_messages.append(
+            SystemMessage(content=self.get_system_prompt(
+                self.system_common_prompt, config, 0)))
 
         result = self.llm_summarize.invoke(new_messages)
 
@@ -97,32 +120,44 @@ class SimpleAgent:
         """Determine whether to continue to tools or end"""
         last_message = state["messages"][-1]
 
+        # TODO: Rework ToolNode to regular node for smart exception and error handling
+        # This is a workaround to handle errors in ToolNode and it's not a good practice
+
+        # TODO: Tool initite call control
+        # TODO: Maybe move search limit here
+        for message in state["messages"]:
+            if isinstance(message, ToolMessage) and message.status == "error":
+                raise Exception(message.content)
+
         if "tool_calls" in last_message.additional_kwargs:
             return "Search"
         else:
             return "Results"
 
     def setup(self):
+        COLLECT_DATA_NODE = "Data collection"
+        DATA_SOURCE_NODE = "Data sources"
+
         graph = StateGraph(state_schema=MessagesState)
 
-        graph.add_edge(START, "Agent")
+        graph.add_edge(START, COLLECT_DATA_NODE)
 
-        graph.add_node("Agent", self.agent_node)
-        graph.add_node("Search tools", self.tools_node)
+        graph.add_node(COLLECT_DATA_NODE, self.agent_node)
+        graph.add_node(DATA_SOURCE_NODE, ToolNode(self.tools))
         graph.add_node("Summarize", self.summarize)
-        graph.set_entry_point("Agent")
+        graph.set_entry_point(COLLECT_DATA_NODE)
 
         graph.add_conditional_edges(
-            "Agent",
+            COLLECT_DATA_NODE,
             self.should_continue,
             {
-                "Search": "Search tools",
+                "Search": DATA_SOURCE_NODE,
                 "Results": "Summarize",
             },
         )
 
-        graph.add_edge("Search tools", "Agent")
+        graph.add_edge(DATA_SOURCE_NODE, COLLECT_DATA_NODE)
         graph.add_edge("Summarize", END)
 
         self.graph = graph
-        self.runnable = graph.compile()
+        self.runnable = graph.compile(store=self.vector_store)

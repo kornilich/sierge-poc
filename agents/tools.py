@@ -3,14 +3,16 @@ import os
 from serpapi import GoogleSearch
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
-
-from typing import Optional, List, TypedDict, Annotated, Dict, Literal
-from langchain_core.messages import AnyMessage
-from pydantic import BaseModel, Field, ConfigDict, RootModel, model_validator, root_validator
+from langgraph.prebuilt import InjectedStore
+from langchain_core.vectorstores import InMemoryVectorStore
+from typing import Optional, List, Dict, Literal, Annotated
+from pydantic import BaseModel, Field
+from langchain_core.documents import Document
 
 
 CategoryEnum = Literal["Live Entertainment", "Movies & Film", "Museums & Exhibits", "Community Events & Activities",
-                "Sports & Recreation", "Health & Wellness", "Learning & Skill-Building", "Shopping", "Food & Drink Experiences", "Self-Guided Activities & Destinations", "Other"]
+                       "Sports & Recreation", "Health & Wellness", "Learning & Skill-Building", "Shopping", "Food & Drink Experiences", "Self-Guided Activities & Destinations", "Other"]
+
 
 class ActivityDetails(BaseModel):
     """Represents detailed information about an activity or event.
@@ -19,11 +21,12 @@ If certain fields lack sufficient data or are unavailable, they will be assigned
 
     source: str = Field(
         default="Model", description="Source of the information. Can be 'Model' or tool name.")
-    rank: Optional[int] = Field(default=None, description="Rank of the activity. Can be 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences."  )
+    rank: Optional[int] = Field(
+        default=None, description="Rank of the activity. Can be 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences.")
     category: Optional[str] = Field(default="Other")
     name: Optional[str] = Field(
         default=None, description="Name/Title of the activity (e.g., Event Name, Venue Name, Destination Name).")
-    description: Optional[str] = Field(default = None,
+    description: Optional[str] = Field(default=None,
                                        description="Brief overview of activity, including cuisine, atmosphere, features and other relevant information")
     location: Optional[str] = Field(
         default=None, description="Location details (Address, GPS coordinates, or general area).")
@@ -69,15 +72,16 @@ If certain fields lack sufficient data or are unavailable, they will be assigned
 class ActivitiesList(BaseModel):
     """Holds a collection of activity details representing recommendations"""
     activities: List[ActivityDetails]
-    reason: Optional[str] = Field(default="No reason provided", description="Reason for the recommendations and tools selection.")
-    
+    reason: Optional[str] = Field(
+        default="No reason provided", description="Reason for the recommendations and tools selection.")
 
-@tool("web_search")
-def web_search(query: str, config: RunnableConfig):
+
+@tool("google_organic_search")
+def google_organic_search(query: str, config: RunnableConfig):
     """Universal search to find all places to go out using Google search. Can also be used
     to augment more 'general' knowledge to a previous specialist query."""
     # TODO: Consider pagination vs number of results
-    
+
     result_types = [
         "organic_results",
         "local_results",
@@ -89,8 +93,8 @@ def web_search(query: str, config: RunnableConfig):
     ]
 
     results = serpapi_search(query, "google", config, result_types)
-                            #  , mock_file = "mockups/serpapi-1.json")
-    
+    #  , mock_file = "mockups/serpapi-1.json")
+
     return results
 
 
@@ -100,15 +104,14 @@ def events_search(query: str, config: RunnableConfig):
 real-time information about events. 
 This tool is designed to help users discover concerts, festivals, workshops, sports games, 
 and other activities based on their query, location, and preferences."""
-    # TODO: Consider pagination vs number of results
-    
+
     result_types = [
         "events_results",
     ]
-    
+
     results = serpapi_search(query, "google_events", config, result_types)
-                            #  , mock_file = "mockups/serpapi-events-1.json")
-    
+    #  , mock_file = "mockups/serpapi-events-1.json")
+
     return results
 
 
@@ -118,8 +121,7 @@ def local_search(query: str, config: RunnableConfig):
 geographically constrained results for places, businesses, and activities. 
 This tool helps users discover nearby locations such as restaurants, attractions, 
 shops, and services based on their query and current location."""
-    # TODO: Consider pagination vs number of results
-    
+
     result_types = [
         "ads_results",
         "local_results",
@@ -127,8 +129,8 @@ shops, and services based on their query and current location."""
     ]
 
     results = serpapi_search(query, "google_local", config, result_types)
-                            #  , mock_file = "mockups/serpapi-locals-1.json")
-    
+    #  , mock_file = "mockups/serpapi-locals-1.json")
+
     return results
 
 
@@ -140,13 +142,13 @@ def yelp_search(query: str, config: RunnableConfig):
     This function utilizes the Yelp API or similar search tools to retrieve 
     information about restaurants, bars, nightlife, businesses or services based on the provided query. 
     """
-    # TODO: Consider pagination vs number of results
+    # TODO: Maybe use advanced search parameters
 
     result_types = [
         "ads_results",
         "organic_results",
     ]
-    
+
     cfg = config.get("configurable", {})
     extra_params = {
         "find_desc": query,
@@ -158,8 +160,10 @@ def yelp_search(query: str, config: RunnableConfig):
 
     return results
 
+
 def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types: List[str] = None, extra_params: Dict[str, str] = None, mock_file: str = None):
-    
+    # TODO: Consider use pagination together with number of results
+
     cfg = config.get("configurable", {})
     params = {
         "engine": engine,
@@ -168,7 +172,7 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
         "num": cfg["number_of_results"],
         "q": query
     }
-    
+
     if extra_params:
         params.update(extra_params)
 
@@ -179,17 +183,18 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
     else:
         search = GoogleSearch(params)
         results = search.get_json()
-        
+
     filtered_results = {}
 
-    search_url = next((v for k, v in results.get("search_metadata", {}).items() if k.startswith("google") and k.endswith("_url")), "")
+    search_url = next((v for k, v in results.get("search_metadata", {}).items(
+    ) if k.startswith("google") and k.endswith("_url")), "")
     if search_url == "":
         search_url = results.get("search_metadata", {}).get("yelp_url", "")
-    
+
     search_query = results.get("search_parameters", {}).get("q", "")
     if search_query == "":
         search_query = results.get("find_desc", {}).get("q", "")  # Yelp
-    
+
     if mock_file:
         search_query = "Mockup results"
 
@@ -204,3 +209,33 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
             }
 
     return filtered_results
+
+
+@tool("save_results")
+def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[InMemoryVectorStore, InjectedStore()]):
+    """
+        Save the results provided by other tools to persistent storage for future use.
+        Parameters:
+            data: The results in ActivitiesList schema to save
+    """
+
+    documents = []
+    for record in data.activities:
+        document = Document(
+            page_content=str(record.model_dump()),
+            metadata={
+                "source": record.source,
+                "name": record.name,
+                "category": record.category
+            }
+        )
+        documents.append(document)
+
+    store.add_documents(documents=documents)
+
+    return {
+        "status": "success",
+        "message": "Data saved",
+        "source": document.metadata["source"],
+        "records": len(documents)
+    }

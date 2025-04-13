@@ -11,6 +11,7 @@ from streamlit.external.langchain import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
+from agents.tools import ActivitiesList, ActivityDetails
 
 from typing import TypeVar, Callable
 import agents.prompts as prmt
@@ -74,15 +75,15 @@ def streamlit_config():
                 ":orange[**Fixed Preferences**]",
                 value=prmt.fixed_preferences_default, height=72*3)
 
-        with st.expander("Instructions"):
-            agent_description = st.text_area(
-                ":orange[**Agent description**]",
-                value=prmt.system_agent_description, height=72*3)
-            tools_instructions = st.text_area(
-                ":orange[**Tools instructions**]",
-                value=prmt.system_tools_instructions, height=72*3)
+        with st.expander("Prompts"):
+            system_common_prompt = st.text_area(
+                ":orange[**Common**]",
+                value=prmt.system_common_prompt, height=72*3)
+            data_sources_prompt = st.text_area(
+                ":orange[**Data collection**]",
+                value=prmt.data_sources_prompt, height=72*3)
             summarize_instructions = st.text_area(
-                ":orange[**Summarize instructions**]",
+                ":orange[**Summarize**]",
                 value=prmt.system_agent_summarize, height=72*3)
 
         with st.expander("Agent settings"):
@@ -98,8 +99,8 @@ def streamlit_config():
     return {
         "contextual_preferences": contextual_preferences,
         "fixed_preferences": fixed_preferences,
-        "agent_description": agent_description,
-        "tools_instructions": tools_instructions,
+        "system_common_prompt": system_common_prompt,
+        "data_sources_prompt": data_sources_prompt,
         "summarize_instructions": summarize_instructions,
         "model": model,
         "location": location,
@@ -108,16 +109,24 @@ def streamlit_config():
     }
 
 
-settings = streamlit_config()
+######## Start here ########
 
 load_environment()
+settings = streamlit_config()
+config = RunnableConfig({
+    "location": settings["location"],
+    "search_limit": settings["search_limit"],
+    "number_of_results": settings["number_of_results"],
+    "callbacks": [get_streamlit_cb(st.empty())],
+})
 
-tools = [
-    tools_set.web_search,
-    tools_set.events_search,
-    tools_set.local_search,
-    tools_set.yelp_search
-]
+# tools = [
+#     tools_set.events_search,
+#     tools_set.local_search,
+#     tools_set.yelp_search
+# ]
+
+tools = [tools_set.google_organic_search, tools_set.save_results]
 
 agent = SimpleAgent(tools, settings)
 agent.setup()
@@ -128,15 +137,12 @@ if chat_input:
     query = f"{settings['fixed_preferences']} \n\n {settings['contextual_preferences']} \n\n {chat_input}"
 
     with st.chat_message("ai"):
-        with st.expander("System prompt (agent)", expanded=False):
-            st.write(prmt.agent_system_prompt.format(
-                agent_description=settings["agent_description"].format(
-                    location=settings["location"]),
-                tools_instructions=settings["tools_instructions"],
-                search_limit=settings["search_limit"]))
+        with st.expander("Data collection prompt", expanded=False):
+            st.write(agent.get_system_prompt(
+                prmt.system_data_collection_prompt_template,config, settings["search_limit"]))
 
     with st.chat_message("human"):
-        with st.expander("Human prompt", expanded=True):
+        with st.expander("Human prompt", expanded=False):
             st.write(query)
             st.markdown(
                 f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['location']}]" +
@@ -144,20 +150,14 @@ if chat_input:
             )
             
     with st.chat_message("ai"):
-        with st.expander("System prompt (summarization)", expanded=False):
-            st.write(settings["agent_description"].format(
-                location=settings["location"]) + "\n\n" + settings["summarize_instructions"])
+        with st.expander("Summarize prompt", expanded=False):
+            st.write(agent.get_system_prompt(settings["system_common_prompt"] + "\n\n" + settings["summarize_instructions"], config, 0))
 
     with st.spinner("Running agent...", show_time=True):
         messages = [HumanMessage(content=query)]
         result = agent.runnable.invoke(
             input={"messages": messages},
-            config=RunnableConfig({
-                "location": settings["location"],
-                "search_limit": settings["search_limit"],
-                "number_of_results": settings["number_of_results"],
-                "callbacks": [get_streamlit_cb(st.empty())],
-            })
+            config=config
         )
 
     for msg in result["messages"]:
@@ -187,28 +187,44 @@ if chat_input:
                         st.write("AIMessage:", msg.content)
         elif isinstance(msg, ToolMessage):
             if msg.name in [tool.name for tool in tools]:
-                with st.chat_message("Search resutls role", avatar=":material/manage_search:"):
+                with st.chat_message("Search results role", avatar=":material/manage_search:"):
                     json_content = json.loads(msg.content)
-                    for search_type, results in json_content.items():                        
-                        st.markdown(
-                            f"**{msg.name} results** (<a href='{results.get('search_url', '')}' target='_blank'>{results.get('search_query', '')}</a>)", unsafe_allow_html=True)
-                        with st.expander(f"Search results: {search_type} ({len(results.get('search_results', []))})"):
-                            st.json(results.get("search_results", {}), expanded=True)
+                    if msg.name != "save_results":
+                        for search_type, results in json_content.items():                        
+                            st.markdown(
+                                f"**{msg.name} results** (<a href='{results.get('search_url', '')}' target='_blank'>{results.get('search_query', '')}</a>)", unsafe_allow_html=True)
+                            with st.expander(f"Search results: {search_type} ({len(results.get('search_results', []))})"):
+                                st.json(results.get("search_results", {}), expanded=True)
+                    else:
+                        st.markdown(f"**Results from {json_content.get('source')} saved:** {json_content.get('records')} records")
             else:
                 st.write(msg)
         else:
             st.write(msg)
 
-    # start_time = datetime.now() - timedelta(days=1)
-    # smithClient = LangsmithClient()
-    # runs = list(
-    #     smithClient.list_runs(
-    #         project_name=os.environ["LANGSMITH_PROJECT"],
-    #         # start_time=start_time,
-    #         # trace_id="3f1be5e6-b61c-4845-8297-ebb883b3a8d8",
-    #         is_root=True,
-    #     )
-    # )
+    # Display stored search results
+    st.subheader(":gray[Search History]")
+        
+    records = []
+    
+    agent.vector_store.dump("vector_store.json")
+    agent.vector_store.load("vector_store.json")
+
+    for index, (id, doc) in enumerate(agent.vector_store.store.items()):
+        # docs have keys 'id', 'vector', 'text', 'metadata'
+        # Convert string representation of dict to actual dict first
+        activity_data = eval(doc['text'])  # text contains string repr of dict
+        activity = ActivityDetails(**activity_data)
+        activity_dict = activity.model_dump()
+        records.append(activity_dict)                
+            
+    df = pd.DataFrame(records)
+    
+    # Group by source and display in expandable sections
+    for source in df['source'].unique():
+        source_df = df[df['source'] == source]
+        with st.expander(f"Results from {source}"):
+            st.dataframe(source_df.drop('source', axis=1), use_container_width=True)
 else:  # Default page view
     col1, col2 = st.columns([1, 5])
     with col1:
@@ -216,19 +232,15 @@ else:  # Default page view
                  use_container_width=True)
     with col2:
         st.header(":blue[Sierge PoC]")
-        st.write(settings["agent_description"].format(location=settings["location"]))
+        st.markdown("Instructions usage: **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization")
 
     col1, col2 = st.columns([2, 2])
     img = agent.runnable.get_graph().draw_png()
     with col1:
-        st.image(img, width=400, caption="Agent architecture")
+        st.image(img, width=400, caption="Congitive model")
     with col2:
-        st.subheader(":gray[Available tools]")
+        st.subheader(":gray[Data sources]")
         st.write("Tool name and instructions for the agent on when and how to use it")
         for tool in agent.tools:
             st.markdown(f"**{tool.name}**: {tool.description}")
-
-        # st.subheader(":gray[Tools usage instructions]")
-        # st.write(settings["tools_instructions"])
-        # st.write(settings["summarize_instructions"])
         
