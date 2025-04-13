@@ -72,15 +72,17 @@ class SimpleAgent:
                     if call["function"]["name"] in [t.name for t in self.tools if t.name != "save_results"]:
                         web_search_count += 1
 
-        if web_search_count >= search_limit:
-            return {"messages": state["messages"] +
-                    [AIMessage(content=f"Maximum search rounds reached ({search_limit}). Stopping.")]}
-
         system_prompt = self.get_system_prompt(
             prmt.system_data_collection_prompt_template, config, web_search_count)
+        
+        if web_search_count >= search_limit:
+            system_prompt = system_prompt + \
+                "\n\nMaximum search rounds reached. Stop using search tools, save results and summarize."
+
         msg_history = [
             SystemMessage(content=system_prompt)
         ] + state["messages"]
+
 
         result = self.llm_agent.invoke(msg_history)
 

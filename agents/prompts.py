@@ -6,11 +6,14 @@ system_data_collection_prompt_template = """{commont_prompt}
 {data_sources_prompt}
 """
 
-data_sources_prompt = """Provide 3 recommendations for each type of activity the user is interested in.
+data_sources_prompt = """
+1. Use model knowledge to provide 3 recommendations for each type of activity
+2. Use other search tools to get more information about the activities
 
-Each time you get results from search tools, save them to storage using save_results tool.
-
-You can call search tools up to {search_limit} times. 
+Do not call google_organic_search tool more than {search_limit} times 
+ 
+Each time you get results from any search tools, save them to storage using save_results tool.
+When saving results set Source field according to the tool used or set "Model" if no tool was used.
 """
 
 system_agent_summarize = """Outline results in the table format with following columns:

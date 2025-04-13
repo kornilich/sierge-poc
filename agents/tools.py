@@ -78,7 +78,7 @@ class ActivitiesList(BaseModel):
 
 @tool("google_organic_search")
 def google_organic_search(query: str, config: RunnableConfig):
-    """Universal search to find all places to go out using Google search. Can also be used
+    """Universal search tool to find all places to go out using Google search. Can also be used
     to augment more 'general' knowledge to a previous specialist query."""
     # TODO: Consider pagination vs number of results
 
@@ -100,7 +100,7 @@ def google_organic_search(query: str, config: RunnableConfig):
 
 @tool("events_search")
 def events_search(query: str, config: RunnableConfig):
-    """A specialized search utility that leverages Google's Event Search engine to find detailed, 
+    """A specialized search tool that leverages Google's Event Search engine to find detailed, 
 real-time information about events. 
 This tool is designed to help users discover concerts, festivals, workshops, sports games, 
 and other activities based on their query, location, and preferences."""
@@ -117,7 +117,7 @@ and other activities based on their query, location, and preferences."""
 
 @tool("local_search")
 def local_search(query: str, config: RunnableConfig):
-    """A specialized search utility that uses Google's Local Search engine to find 
+    """A specialized search tool that uses Google's Local Search engine to find 
 geographically constrained results for places, businesses, and activities. 
 This tool helps users discover nearby locations such as restaurants, attractions, 
 shops, and services based on their query and current location."""
@@ -137,9 +137,7 @@ shops, and services based on their query and current location."""
 @tool("yelp_search")
 def yelp_search(query: str, config: RunnableConfig):
     """
-    Perform a Yelp search based on the given query and runtime configuration.
-
-    This function utilizes the Yelp API or similar search tools to retrieve 
+    Search tool which performs a Yelp search to retrieve 
     information about restaurants, bars, nightlife, businesses or services based on the provided query. 
     """
     # TODO: Maybe use advanced search parameters

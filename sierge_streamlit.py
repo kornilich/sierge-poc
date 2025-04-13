@@ -108,38 +108,35 @@ def streamlit_config():
         "number_of_results": number_of_results
     }
 
+def streamlit_show_home(agent):
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
+                    use_container_width=True)
+    with col2:
+        st.header(":blue[Sierge PoC]")
+        st.markdown("Instructions usage: **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization")
 
-######## Start here ########
+    col1, col2 = st.columns([2, 2])
+    img = agent.runnable.get_graph().draw_png()
+    with col1:
+        st.image(img, width=400, caption="Congitive model")
+    with col2:
+        st.subheader(":gray[Data sources]")
+        st.write("Tool name and instructions for the agent on when and how using it")
+        for tool in agent.tools:
+            st.markdown(f"**{tool.name}**: {tool.description}")
+            
+    return
 
-load_environment()
-settings = streamlit_config()
-config = RunnableConfig({
-    "location": settings["location"],
-    "search_limit": settings["search_limit"],
-    "number_of_results": settings["number_of_results"],
-    "callbacks": [get_streamlit_cb(st.empty())],
-})
 
-# tools = [
-#     tools_set.events_search,
-#     tools_set.local_search,
-#     tools_set.yelp_search
-# ]
-
-tools = [tools_set.google_organic_search, tools_set.save_results]
-
-agent = SimpleAgent(tools, settings)
-agent.setup()
-
-chat_input = st.chat_input("Describe your situational preferences here...")
-
-if chat_input:
+def streamlit_prepare_execution(settings, config, agent, chat_input):  
     query = f"{settings['fixed_preferences']} \n\n {settings['contextual_preferences']} \n\n {chat_input}"
 
     with st.chat_message("ai"):
         with st.expander("Data collection prompt", expanded=False):
             st.write(agent.get_system_prompt(
-                prmt.system_data_collection_prompt_template,config, settings["search_limit"]))
+                prmt.system_data_collection_prompt_template, config))
 
     with st.chat_message("human"):
         with st.expander("Human prompt", expanded=False):
@@ -148,21 +145,18 @@ if chat_input:
                 f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['location']}]" +
                 f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
             )
-            
+
     with st.chat_message("ai"):
         with st.expander("Summarize prompt", expanded=False):
-            st.write(agent.get_system_prompt(settings["system_common_prompt"] + "\n\n" + settings["summarize_instructions"], config, 0))
+            st.write(agent.get_system_prompt(
+                settings["system_common_prompt"] + "\n\n" + settings["summarize_instructions"], config, 0))
 
-    with st.spinner("Running agent...", show_time=True):
-        messages = [HumanMessage(content=query)]
-        result = agent.runnable.invoke(
-            input={"messages": messages},
-            config=config
-        )
+    return query
 
+def streamlit_report_execution(result):
     for msg in result["messages"]:
         if isinstance(msg, HumanMessage):
-            pass
+                pass
         elif isinstance(msg, AIMessage):
             with st.chat_message("assistant"):
                 if hasattr(msg, 'additional_kwargs'):
@@ -171,9 +165,10 @@ if chat_input:
                             fn = tool_call["function"]
                             if fn["name"] in [tool.name for tool in tools]:
                                 query = json.loads(fn["arguments"])
-                                query_text = query.get("query", "")
+                                query_text = query.get("query", "n/a")
 
-                                st.markdown(f"Decided to use **{fn['name']}** ({query_text})")
+                                st.markdown(
+                                    f"Decided to use **{fn['name']}** > {query_text}")
                             else:
                                 st.write("Tool:", fn["name"], msg.content)
                     elif 'structured_output' in msg.additional_kwargs:
@@ -190,25 +185,27 @@ if chat_input:
                 with st.chat_message("Search results role", avatar=":material/manage_search:"):
                     json_content = json.loads(msg.content)
                     if msg.name != "save_results":
-                        for search_type, results in json_content.items():                        
+                        for search_type, results in json_content.items():
                             st.markdown(
-                                f"**{msg.name} results** (<a href='{results.get('search_url', '')}' target='_blank'>{results.get('search_query', '')}</a>)", unsafe_allow_html=True)
+                                f"**{msg.name} results**: <a href='{results.get('search_url', '')}' target='_blank'>{results.get('search_query', '')}</a>", unsafe_allow_html=True)
                             with st.expander(f"Search results: {search_type} ({len(results.get('search_results', []))})"):
-                                st.json(results.get("search_results", {}), expanded=True)
+                                st.json(results.get(
+                                    "search_results", {}), expanded=True)
                     else:
-                        st.markdown(f"**Results from {json_content.get('source')} saved:** {json_content.get('records')} records")
+                        st.markdown(
+                            f"**Results from {json_content.get('source')} saved:** {json_content.get('records')} records")
             else:
                 st.write(msg)
         else:
             st.write(msg)
+            
+    return 
 
+def streamlit_display_storage(agent):
     # Display stored search results
     st.subheader(":gray[Search History]")
-        
-    records = []
     
-    agent.vector_store.dump("vector_store.json")
-    agent.vector_store.load("vector_store.json")
+    records = []
 
     for index, (id, doc) in enumerate(agent.vector_store.store.items()):
         # docs have keys 'id', 'vector', 'text', 'metadata'
@@ -216,31 +213,63 @@ if chat_input:
         activity_data = eval(doc['text'])  # text contains string repr of dict
         activity = ActivityDetails(**activity_data)
         activity_dict = activity.model_dump()
-        records.append(activity_dict)                
-            
-    df = pd.DataFrame(records)
-    
-    # Group by source and display in expandable sections
-    for source in df['source'].unique():
-        source_df = df[df['source'] == source]
-        with st.expander(f"Results from {source}"):
-            st.dataframe(source_df.drop('source', axis=1), use_container_width=True)
-else:  # Default page view
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
-                 use_container_width=True)
-    with col2:
-        st.header(":blue[Sierge PoC]")
-        st.markdown("Instructions usage: **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization")
+        records.append(activity_dict)
 
-    col1, col2 = st.columns([2, 2])
-    img = agent.runnable.get_graph().draw_png()
-    with col1:
-        st.image(img, width=400, caption="Congitive model")
-    with col2:
-        st.subheader(":gray[Data sources]")
-        st.write("Tool name and instructions for the agent on when and how to use it")
-        for tool in agent.tools:
-            st.markdown(f"**{tool.name}**: {tool.description}")
+    df = pd.DataFrame(records)
+
+    # Group by source and display in expandable sections
+    if len(df) > 0 and 'source' in df.columns:
+        for source in df['source'].unique():
+            source_df = df[df['source'] == source]
+            with st.expander(f"Results from {source}"):
+                st.dataframe(source_df.drop('source', axis=1),
+                                use_container_width=True)
+    else:
+        st.error("Structure issue: no 'source' column found")
+        st.dataframe(df, use_container_width=True)
+
+######## Start here ########
+
+load_environment()
+settings = streamlit_config()
+config = RunnableConfig({
+    "location": settings["location"],
+    "search_limit": settings["search_limit"],
+    "number_of_results": settings["number_of_results"],
+    "callbacks": [get_streamlit_cb(st.empty())],
+})
+
+
+tools = [tools_set.google_organic_search, tools_set.save_results]
+
+agent = SimpleAgent(tools, settings)
+agent.setup()
+
+chat_input = st.chat_input("Describe your situational preferences here...")
+
+use_vector_store_file = False
+
+# use_vector_store_file = True
+vector_store_path = "mockups/vector_store.json"
+
+if chat_input:
+    query = streamlit_prepare_execution(settings, config, agent, chat_input)
+
+    with st.spinner("Running agent...", show_time=True):
+        if not use_vector_store_file:
+            messages = [HumanMessage(content=query)]
+            
+            result = agent.runnable.invoke(
+                input={"messages": messages},
+                config=config
+            )
+
+            streamlit_report_execution(result)
+            agent.vector_store.dump(vector_store_path)
+        else:
+            agent.vector_store.load(vector_store_path, agent.vector_store.embeddings)
+
+    streamlit_display_storage(agent)
+else: 
+    streamlit_show_home(agent)
         
