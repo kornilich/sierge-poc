@@ -10,5 +10,6 @@ langgraph
 semantic-router
 serpapi
 google-search-results
+langchain-pinecone
 
 pygraphviz

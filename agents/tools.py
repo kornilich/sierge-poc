@@ -4,10 +4,11 @@ from serpapi import GoogleSearch
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import InjectedStore
-from langchain_core.vectorstores import InMemoryVectorStore
 from typing import Optional, List, Dict, Literal, Annotated
 from pydantic import BaseModel, Field
 from langchain_core.documents import Document
+
+from agents.vector_database import VectorDatabase
 
 
 CategoryEnum = Literal["Live Entertainment", "Movies & Film", "Museums & Exhibits", "Community Events & Activities",
@@ -221,7 +222,7 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
 
 
 @tool("save_results")
-def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[InMemoryVectorStore, InjectedStore()]):
+def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
     """
         Save the results provided by other tools to persistent storage for future use.
         Parameters:
@@ -229,11 +230,12 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
     """
 
     documents = []
-    ids = []
-    ref = str(len(store.store))
+
+    ref = str(store.count())
     for record in data.activities:
         record.ref = ref
         document = Document(
+            id=record.name,
             page_content=str(record.model_dump()),
             metadata={
                 "data_source": record.data_source,
@@ -242,9 +244,8 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
             }
         )
         documents.append(document)
-        ids.append(record.name)
         
-    store.add_documents(documents=documents, ids=ids)
+    store.add_documents(documents=documents)
 
     return {
         "status": "success",

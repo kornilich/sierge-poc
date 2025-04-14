@@ -10,19 +10,14 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.prompts import PromptTemplate
 import agents.prompts as prmt
 
-from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_openai import OpenAIEmbeddings
-
 
 class DataCollectionAgent:
-    def __init__(self, tools, settings):
+    def __init__(self, vector_store, tools, settings):
         self.system_common_prompt = settings["system_common_prompt"]
         self.data_sources_prompt = settings["data_sources_prompt"]
-        self.summarize_instructions = settings["summarize_instructions"]
         self.gpt_model = settings["model"]
 
-        self.vector_store = InMemoryVectorStore(
-            OpenAIEmbeddings(model="text-embedding-3-small"))
+        self.vector_store = vector_store
 
         self.llm = ChatOpenAI(
             model=self.gpt_model,
@@ -32,11 +27,6 @@ class DataCollectionAgent:
 
         self.tools = tools
         self.llm_agent = self.llm.bind_tools(self.tools)
-
-        # self.llm_summarize = self.llm.with_structured_output(
-        #     ActivitiesList, method="json_mode")
-
-        self.llm_summarize = self.llm
 
     def get_system_prompt(self, prompt, config, web_search_count=0):
         # Direct access to config if not grpah invoked, otherwise use graph config via configurable
@@ -89,36 +79,7 @@ class DataCollectionAgent:
             SystemMessage(content=system_prompt)
         ] + state["messages"]
 
-
         result = self.llm_agent.invoke(msg_history)
-
-        return {
-            "messages": [result]
-        }
-
-    def summarize(self, state: MessagesState, config: RunnableConfig):
-        new_messages = []
-        human_message = None
-        for msg in state["messages"]:
-            if isinstance(msg, HumanMessage):
-                human_message = msg.content
-            else:
-                new_messages.append(msg)
-
-        new_messages.append(HumanMessage(
-            content=human_message + "\n\n" + self.summarize_instructions))
-        new_messages.append(
-            SystemMessage(content=self.get_system_prompt(
-                self.system_common_prompt, config, 0)))
-
-        result = self.llm_summarize.invoke(new_messages)
-
-        # return {
-        #     "messages": [
-        #         AIMessage(content=result.model_dump_json(),
-        #                     additional_kwargs={"structured_output": result, "title":"Summary"})
-        #     ]
-        # }
 
         return {
             "messages": [result]
@@ -152,7 +113,6 @@ class DataCollectionAgent:
 
         graph.add_node(COLLECT_DATA_NODE, self.agent_node)
         graph.add_node(DATA_SOURCE_NODE, ToolNode(self.tools))
-        # graph.add_node("Summarize", self.summarize)
         graph.set_entry_point(COLLECT_DATA_NODE)
 
         graph.add_conditional_edges(
@@ -165,7 +125,5 @@ class DataCollectionAgent:
         )
 
         graph.add_edge(DATA_SOURCE_NODE, COLLECT_DATA_NODE)
-        # graph.add_edge("Summarize", END)
 
-        self.graph = graph
         self.runnable = graph.compile(store=self.vector_store)
