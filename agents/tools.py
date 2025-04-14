@@ -19,10 +19,10 @@ class ActivityDetails(BaseModel):
 If certain fields lack sufficient data or are unavailable, they will be assigned the value `N/A`    
     """
 
-    source: str = Field(
+    data_source: Optional[str] = Field(
         default="Model", description="Source of the information. Can be 'Model' or tool name.")
-    rank: Optional[int] = Field(
-        default=None, description="Rank of the activity. Can be 1 to 5. Where 1 is the best and 5 is the worst fit to user's preferences.")
+    ref: str = Field(
+        default="0", description="For internal use only")
     category: Optional[str] = Field(default="Other")
     name: Optional[str] = Field(
         default=None, description="Name/Title of the activity (e.g., Event Name, Venue Name, Destination Name).")
@@ -98,8 +98,8 @@ def google_organic_search(query: str, config: RunnableConfig):
     return results
 
 
-@tool("events_search")
-def events_search(query: str, config: RunnableConfig):
+@tool("google_events_search")
+def google_events_search(query: str, config: RunnableConfig):
     """A specialized search tool that leverages Google's Event Search engine to find detailed, 
 real-time information about events. 
 This tool is designed to help users discover concerts, festivals, workshops, sports games, 
@@ -115,8 +115,8 @@ and other activities based on their query, location, and preferences."""
     return results
 
 
-@tool("local_search")
-def local_search(query: str, config: RunnableConfig):
+@tool("google_local_search")
+def google_local_search(query: str, config: RunnableConfig):
     """A specialized search tool that uses Google's Local Search engine to find 
 geographically constrained results for places, businesses, and activities. 
 This tool helps users discover nearby locations such as restaurants, attractions, 
@@ -200,12 +200,23 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
     for item in results.items():
         if not result_types or item[0] in result_types:
             filtered_results[item[0]] = {
+                "data_source": engine,
                 "search_type": item[0],
                 "search_url": search_url,
                 "search_query": search_query,
                 "search_results": item[1]
             }
 
+    # Add error information if present
+    if "error" in results:
+        filtered_results["error"] = {
+            "data_source": engine,
+            "search_type": "error",
+            "search_url": search_url,
+            "search_query": search_query,
+            "search_results": [results["error"]]
+        }
+        
     return filtered_results
 
 
@@ -218,22 +229,27 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
     """
 
     documents = []
+    ids = []
+    ref = str(len(store.store))
     for record in data.activities:
+        record.ref = ref
         document = Document(
             page_content=str(record.model_dump()),
             metadata={
-                "source": record.source,
+                "data_source": record.data_source,
                 "name": record.name,
                 "category": record.category
             }
         )
         documents.append(document)
-
-    store.add_documents(documents=documents)
+        ids.append(record.name)
+        
+    store.add_documents(documents=documents, ids=ids)
 
     return {
         "status": "success",
         "message": "Data saved",
-        "source": document.metadata["source"],
-        "records": len(documents)
+        "data_source": documents[0].metadata["data_source"] if documents else "n/a",
+        "records": len(documents),
+        "ref": ref
     }

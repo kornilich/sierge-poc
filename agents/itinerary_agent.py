@@ -14,7 +14,7 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import OpenAIEmbeddings
 
 
-class SimpleAgent:
+class ItineraryAgent:
     def __init__(self, tools, settings):
         self.system_common_prompt = settings["system_common_prompt"]
         self.data_sources_prompt = settings["data_sources_prompt"]
@@ -39,10 +39,12 @@ class SimpleAgent:
         self.llm_summarize = self.llm
 
     def get_system_prompt(self, prompt, config, web_search_count=0):
-        cfg = config.get('configurable', {})
+        # Direct access to config if not grpah invoked, otherwise use graph config via configurable
+        cfg = config.get('configurable', config) 
+        
         location = cfg.get('location', '')
         search_limit = cfg.get('search_limit', 0)
-
+        number_of_results = cfg.get('number_of_results', 0)
         def _format_prompt(prompt, **kwargs):
             # Count number of placeholders in the prompt
             prompt_before = prompt
@@ -55,8 +57,12 @@ class SimpleAgent:
 
             return result
 
+        limit = search_limit - web_search_count
+        if limit < 0:
+            limit = 0
+
         system_prompt = _format_prompt(prompt, commont_prompt=self.system_common_prompt,
-                                       data_sources_prompt=self.data_sources_prompt, location=location, search_limit=search_limit-web_search_count)
+                                       data_sources_prompt=self.data_sources_prompt, location=location, search_limit=limit, number_of_results=number_of_results)
 
         return system_prompt
 
@@ -135,7 +141,6 @@ class SimpleAgent:
             return "Search"
         else:
             return "Results"
-
     def setup(self):
         COLLECT_DATA_NODE = "Data collection"
         DATA_SOURCE_NODE = "Data sources"
@@ -146,7 +151,7 @@ class SimpleAgent:
 
         graph.add_node(COLLECT_DATA_NODE, self.agent_node)
         graph.add_node(DATA_SOURCE_NODE, ToolNode(self.tools))
-        graph.add_node("Summarize", self.summarize)
+        # graph.add_node("Summarize", self.summarize)
         graph.set_entry_point(COLLECT_DATA_NODE)
 
         graph.add_conditional_edges(
@@ -154,12 +159,13 @@ class SimpleAgent:
             self.should_continue,
             {
                 "Search": DATA_SOURCE_NODE,
-                "Results": "Summarize",
+                "Results": END,
             },
         )
 
         graph.add_edge(DATA_SOURCE_NODE, COLLECT_DATA_NODE)
-        graph.add_edge("Summarize", END)
+        # graph.add_edge("Summarize", END)
 
         self.graph = graph
         self.runnable = graph.compile(store=self.vector_store)
+

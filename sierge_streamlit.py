@@ -5,7 +5,8 @@ import inspect
 import os
 from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ctx
-from agents.simpleagent import SimpleAgent
+from agents.data_collection_agent import DataCollectionAgent
+from agents.itinerary_agent import ItineraryAgent
 # from langchain.callbacks.streamlit import StreamlitCallbackHandler
 from streamlit.external.langchain import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
@@ -63,7 +64,7 @@ def load_environment():
     os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
 
 
-def streamlit_config():
+def streamlit_settings():
     st.set_page_config(page_title='Sierge PoC', layout='wide')
 
     with st.sidebar:
@@ -108,13 +109,17 @@ def streamlit_config():
         "number_of_results": number_of_results
     }
 
-def streamlit_show_home(agent):
+def streamlit_show_collection_home(agent):
     col1, col2 = st.columns([1, 5])
     with col1:
         st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
                     use_container_width=True)
     with col2:
-        st.header(":blue[Sierge PoC]")
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            st.header(":blue[Data collection mode]")
+        with c2:
+            st.header(":gray[Sierge PoC]")
         st.markdown("Instructions usage: **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization")
 
     col1, col2 = st.columns([2, 2])
@@ -127,6 +132,31 @@ def streamlit_show_home(agent):
         for tool in agent.tools:
             st.markdown(f"**{tool.name}**: {tool.description}")
             
+    return
+
+def streamlit_show_itinerary_home(agent):
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
+                 use_container_width=True)
+    with col2:
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            st.header(":blue[Itinerary mode]")
+        with c2:
+            st.header(":gray[Sierge PoC]")
+        st.write(settings["summarize_instructions"])
+
+    col1, col2 = st.columns([2, 2])
+    img = agent.runnable.get_graph().draw_png()
+    with col1:
+        st.image(img, width=200, caption="Congitive model")
+    with col2:
+        st.subheader(":gray[Data sources]")
+        st.write("Tool name and instructions for the agent on when and how using it")
+        for tool in agent.tools:
+            st.markdown(f"**{tool.name}**: {tool.description}")
+
     return
 
 
@@ -146,10 +176,10 @@ def streamlit_prepare_execution(settings, config, agent, chat_input):
                 f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
             )
 
-    with st.chat_message("ai"):
-        with st.expander("Summarize prompt", expanded=False):
-            st.write(agent.get_system_prompt(
-                settings["system_common_prompt"] + "\n\n" + settings["summarize_instructions"], config, 0))
+    # with st.chat_message("ai"):
+    #     with st.expander("Summarize prompt", expanded=False):
+    #         st.write(agent.get_system_prompt(
+    #             settings["system_common_prompt"] + "\n\n" + settings["summarize_instructions"], config, 0))
 
     return query
 
@@ -165,10 +195,12 @@ def streamlit_report_execution(result):
                             fn = tool_call["function"]
                             if fn["name"] in [tool.name for tool in tools]:
                                 query = json.loads(fn["arguments"])
-                                query_text = query.get("query", "n/a")
+                                query_text = query.get("query", "")
+                                if query_text:
+                                    query_text = f" > {query_text}"
 
                                 st.markdown(
-                                    f"Decided to use **{fn['name']}** > {query_text}")
+                                    f"Decided to use **{fn['name']}** {query_text}")
                             else:
                                 st.write("Tool:", fn["name"], msg.content)
                     elif 'structured_output' in msg.additional_kwargs:
@@ -193,7 +225,7 @@ def streamlit_report_execution(result):
                                     "search_results", {}), expanded=True)
                     else:
                         st.markdown(
-                            f"**Results from {json_content.get('source')} saved:** {json_content.get('records')} records")
+                            f"**Results from {json_content.get('data_source')} saved:** {json_content.get('records')} records. Ref #{json_content.get('ref')}")
             else:
                 st.write(msg)
         else:
@@ -201,13 +233,13 @@ def streamlit_report_execution(result):
             
     return 
 
-def streamlit_display_storage(agent):
+def streamlit_display_storage(storage):
     # Display stored search results
-    st.subheader(":gray[Search History]")
+    st.subheader(":gray[Cached data]")
     
     records = []
 
-    for index, (id, doc) in enumerate(agent.vector_store.store.items()):
+    for index, (id, doc) in enumerate(storage.store.items()):
         # docs have keys 'id', 'vector', 'text', 'metadata'
         # Convert string representation of dict to actual dict first
         activity_data = eval(doc['text'])  # text contains string repr of dict
@@ -218,58 +250,131 @@ def streamlit_display_storage(agent):
     df = pd.DataFrame(records)
 
     # Group by source and display in expandable sections
-    if len(df) > 0 and 'source' in df.columns:
-        for source in df['source'].unique():
-            source_df = df[df['source'] == source]
+    if len(df) > 0 and 'data_source' in df.columns:
+        for source in df['data_source'].unique():
+            source_df = df[df['data_source'] == source]
             with st.expander(f"Results from {source}"):
-                st.dataframe(source_df.drop('source', axis=1),
+                st.dataframe(source_df.drop('data_source', axis=1),
                                 use_container_width=True)
     else:
-        st.error("Structure issue: no 'source' column found")
+        st.error("Structure issue: no 'data_source' column found")
         st.dataframe(df, use_container_width=True)
 
+
 ######## Start here ########
-
+if 'chat_mode' not in st.session_state:
+    st.session_state.storage = None
+    st.session_state.chat_mode = "collect"
+    
+chat_mode = st.session_state.chat_mode
+    
 load_environment()
-settings = streamlit_config()
-config = RunnableConfig({
-    "location": settings["location"],
-    "search_limit": settings["search_limit"],
-    "number_of_results": settings["number_of_results"],
-    "callbacks": [get_streamlit_cb(st.empty())],
-})
+settings = streamlit_settings()
 
+if chat_mode == "collect":        
+    config = RunnableConfig({
+        "location": settings["location"],
+        "search_limit": settings["search_limit"],
+        "number_of_results": settings["number_of_results"],
+        "callbacks": [get_streamlit_cb(st.empty())],
+    })
 
-tools = [tools_set.google_organic_search, tools_set.save_results]
+    tools = [tools_set.save_results, tools_set.google_organic_search, tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
 
-agent = SimpleAgent(tools, settings)
-agent.setup()
+    agent = DataCollectionAgent(tools, settings)
+    agent.setup()
 
-chat_input = st.chat_input("Describe your situational preferences here...")
+    use_vector_store_file = False
 
-use_vector_store_file = False
+    # use_vector_store_file = True
+    vector_store_path = "mockups/vector_store.json"
 
-# use_vector_store_file = True
-vector_store_path = "mockups/vector_store.json"
+    chat_input = st.chat_input("Type additonal query here to start data collection..")
 
-if chat_input:
-    query = streamlit_prepare_execution(settings, config, agent, chat_input)
+    if chat_input:
+        query = streamlit_prepare_execution(settings, config, agent, chat_input)
 
-    with st.spinner("Running agent...", show_time=True):
-        if not use_vector_store_file:
-            messages = [HumanMessage(content=query)]
-            
-            result = agent.runnable.invoke(
-                input={"messages": messages},
-                config=config
-            )
+        with st.spinner("Collecting data...", show_time=True):
+            if not use_vector_store_file:
+                messages = [HumanMessage(content=query)]
+                
+                result = agent.runnable.invoke(
+                    input={"messages": messages},
+                    config=config
+                )
 
-            streamlit_report_execution(result)
-            agent.vector_store.dump(vector_store_path)
-        else:
-            agent.vector_store.load(vector_store_path, agent.vector_store.embeddings)
+                streamlit_report_execution(result)
+                agent.vector_store.dump(vector_store_path)
+            else:
+                agent.vector_store = agent.vector_store.load(
+                    vector_store_path, agent.vector_store.embeddings)
 
-    streamlit_display_storage(agent)
-else: 
-    streamlit_show_home(agent)
+        st.session_state.storage = agent.vector_store
+        streamlit_display_storage(agent.vector_store)
         
+        def click_button():
+            st.session_state.chat_mode = "itinerary"
+
+        st.divider()
+        st.write("Choose action")
+        col1, col2 = st.columns([1, 5], gap="small")
+        with col1:
+            st.button('Generate itinerary', on_click=click_button, type="primary")
+        with col2:
+            st.button('Collect data again', type="secondary")
+    else:
+        streamlit_show_collection_home(agent)
+else:
+    config = RunnableConfig({
+        "callbacks": [get_streamlit_cb(st.empty())],
+    })
+
+    tools = []
+
+    agent = ItineraryAgent(tools, settings)
+    agent.setup()
+
+    use_vector_store_file = False
+
+    # use_vector_store_file = True
+    vector_store_path = "mockups/vector_store.json"
+
+    chat_input = st.chat_input(
+        "Type instructions to create itinerary..")
+
+    if chat_input:
+        query = streamlit_prepare_execution(
+            settings, config, agent, chat_input)
+
+        with st.spinner("Creating itinerary...", show_time=True):
+            if not use_vector_store_file:
+                messages = [HumanMessage(content=query)]
+
+                result = agent.runnable.invoke(
+                    input={"messages": messages},
+                    config=config
+                )
+
+                streamlit_report_execution(result)
+                agent.vector_store.dump(vector_store_path)
+            else:
+                agent.vector_store = agent.vector_store.load(
+                    vector_store_path, agent.vector_store.embeddings)
+
+        st.session_state.storage = agent.vector_store
+        streamlit_display_storage(agent.vector_store)
+
+        def click_button():
+            st.session_state.chat_mode = "collect"
+
+        st.divider()
+        st.write("Choose action")
+        col1, col2 = st.columns([1, 4], gap="small")
+        with col1:
+            st.button('Data collection mode',
+                      on_click=click_button, type="primary")
+        with col2:
+            st.button('Generate itinerary again',
+                      type="secondary")
+    else:
+        streamlit_show_itinerary_home(agent)
