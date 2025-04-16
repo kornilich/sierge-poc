@@ -7,8 +7,7 @@ from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ctx
 from streamlit.external.langchain import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from agents.activities import ActivityDetails
+from langchain_core.messages import SystemMessage,AIMessage, HumanMessage, ToolMessage
 from typing import TypeVar, Callable
 import agents.prompts as prmt
 import json
@@ -44,7 +43,7 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
     return st_cb
 
 
-def streamlit_settings():
+def streamlit_settings(chat_mode_list, current_chat_mode=None):
     st.set_page_config(page_title='Sierge PoC', layout='wide')
 
     with st.sidebar:
@@ -77,6 +76,10 @@ def streamlit_settings():
             number_of_results = st.slider(
                 "Number of results", min_value=5, max_value=20, value=5)
 
+        chat_mode = st.segmented_control(
+            "Data mode", chat_mode_list, default=current_chat_mode, selection_mode="single"
+        )
+
     return {
         "contextual_preferences": contextual_preferences,
         "fixed_preferences": fixed_preferences,
@@ -86,7 +89,8 @@ def streamlit_settings():
         "model": model,
         "location": location,
         "search_limit": search_limit,
-        "number_of_results": number_of_results
+        "number_of_results": number_of_results,
+        "chat_mode": chat_mode
     }
 
 def streamlit_show_collection_home(agent):
@@ -125,7 +129,7 @@ def streamlit_show_itinerary_home(agent):
             st.header(":blue[Itinerary mode]")
         with c2:
             st.header(":gray[Sierge PoC]")
-        st.write(settings["summarize_instructions"])
+        # st.write(settings["summarize_instructions"])
 
     col1, col2 = st.columns([2, 2])
     img = agent.runnable.get_graph().draw_png()
@@ -135,6 +139,34 @@ def streamlit_show_itinerary_home(agent):
         st.subheader(":gray[Data sources]")
         st.write("Tool name and instructions for the agent on when and how using it")
         for tool in agent.tools:
+            st.markdown(f"**{tool.name}**: {tool.description}")
+
+    return
+
+
+def streamlit_show_generic_home(agent, tools, title, image_name, description):
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image(f"assets/{image_name}",
+                 use_container_width=True)
+    with col2:
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            st.header(f":blue[{title}]")
+        with c2:
+            st.header(":gray[Sierge PoC]")
+        st.write(description)
+        st.divider()
+
+    col1, col2 = st.columns([1, 2])
+    img = agent.get_graph().draw_mermaid_png()
+
+    with col1:
+        st.image(img, width=300, caption="Congitive model")
+    with col2:
+        st.subheader(":gray[Tools]")
+        st.write("Tool name and instructions for the agent on when and how using it")
+        for tool in tools:
             st.markdown(f"**{tool.name}**: {tool.description}")
 
     return
@@ -206,10 +238,14 @@ def streamlit_report_execution(result, tools):
                             f"**Results from {json_content.get('data_source')} saved:** {json_content.get('records_affected')} records")
             else:
                 st.write(msg)
+        elif isinstance(msg, SystemMessage):
+            with st.chat_message("ai"):
+                with st.expander("System message", expanded=False):
+                    st.write(msg)
         else:
             st.write(msg)
 
-def streamlit_display_storage(storage, data_ids):
+def streamlit_display_storage(storage, data_ids, group_by="data_source"):
     # Display stored search results
     st.subheader(":gray[Collected data]")
     
@@ -224,6 +260,11 @@ def streamlit_display_storage(storage, data_ids):
     
     # Move id column to the end if it exists
     cols = [col for col in df.columns if col != 'id'] + ['id']
+    
+    if len(cols) < 2:
+        st.error("Not enough columns to display data")
+        return
+    
     df = df[cols]
     
     # Convert timestamp fields to datetime
@@ -240,9 +281,9 @@ def streamlit_display_storage(storage, data_ids):
     df = df.drop(['created_at', 'updated_at'], axis=1)        
 
     # Group by source and display in expandable sections
-    if len(df) > 0 and 'data_source' in df.columns:
-        for source in df['data_source'].unique():
-            source_df = df[df['data_source'] == source]
+    if len(df) > 0 and group_by in df.columns:
+        for source in df[group_by].unique():
+            source_df = df[df[group_by] == source]
             with st.expander(f"Results from {source}"):
                 st.dataframe(source_df.drop('data_source', axis=1),
                                 use_container_width=True)

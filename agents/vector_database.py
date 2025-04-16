@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import uuid
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
@@ -19,47 +20,83 @@ class VectorDatabase:
         
         self.vector_store = PineconeVectorStore(index=self.index, embedding=embeddings)
     
-    def count(self):
-        stats = self.index.describe_index_stats()    
-        return stats["total_vector_count"]
+    def stats(self):
+        stats = self.index.describe_index_stats()
+        return stats.to_dict()
+        
+    def similarity_search(self, query: str, k: int = 4):
+        results = self.vector_store.similarity_search(query, k=k)
+        
+        activities = []
+        for doc in results:
+            activity = ActivityDetails(**doc.metadata)
+            activity.id = doc.id
+            activities.append(activity)
+        
+        return activities
+    
     
     def get_by_ids(self, ids: list[str]):        
         vectors = self.index.fetch(ids).vectors
         
         activities = []
         
-        for id, vector in vectors.items():
-            activity = ActivityDetails(**vector.metadata)
+        for id, vector in vectors.items():            
+            activity = ActivityDetails(**eval(vector.metadata["text"]))
             activity.id = id
             activities.append(activity)
             
         return activities
     
-    def add_documents(self, documents: list[Document]):
-        # Create a list to store unique documents
+    def add_documents(self, activities: list[ActivityDetails]):
+        # Create a list to store unique documents 
         
-        for doc in documents:
+        for activity in activities:
+            # TODO: Make advanced duplicates processing
             # Query for existing documents with same name and location
-            existing = self.vector_store.similarity_search(
-                "name: " + str(doc.metadata.get("name", "")) + " location: " + str(doc.metadata.get("location", "")),
+            existing_rec = self.vector_store.similarity_search(
+                "name: " + activity.name + " location: " + activity.location,
                 k=1,
                 filter={
-                    "name": doc.metadata.get("name"),
-                    "location": doc.metadata.get("location")
+                    "name": activity.name,
                 }
             )
 
             current_timestamp = int(datetime.now().timestamp())
-            doc.metadata["updated_at"] = current_timestamp
-            doc.metadata["created_at"] = current_timestamp
+            activity.updated_at = current_timestamp
+            activity.created_at = current_timestamp
             
-            if existing:
+            if existing_rec:
                 # Id and created_at are not updated
-                doc.id = existing[0].id
-                if "created_at" in existing[0].metadata:
-                    doc.metadata["created_at"] = existing[0].metadata["created_at"]                
+                activity.id = existing_rec[0].id
+                if "created_at" in existing_rec[0].metadata:
+                    activity.created_at = existing_rec[0].metadata["created_at"]                
+            else:
+                if not activity.id:
+                    activity.id = str(uuid.uuid4())
+                        
+        documents = []
+
+        for activity in activities:
+            document = Document(
+                id=activity.id,
+                page_content=str(activity.model_dump()),
+                metadata={
+                    "name": activity.name,
+                    "location": activity.location,
+                    "category": activity.category,
+                    "data_source": activity.data_source,
+                    "created_at": activity.created_at,
+                    "updated_at": activity.updated_at,
+                }
+            )
+            documents.append(document)
                                         
-        self.vector_store.add_documents(documents)
+            self.vector_store.add_documents(documents)
+            
+    def delete_by_ids(self, ids: list[str]):
+        self.index.delete(ids)
+    
     
     
     

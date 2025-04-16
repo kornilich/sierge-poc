@@ -167,33 +167,106 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
             records_affected: number of records saved
     """
 
-    documents = []
-
-    for record in data.activities:
-        id = str(uuid.uuid4())
-        document = Document(
-            id=id,
-            page_content=str(record.model_dump()),
-            metadata={
-                "name": record.name,
-                "location": record.location,
-                "category": record.category,
-                "data_source": record.data_source,
-            }
-        )
-        documents.append(document)
-        
-    store.add_documents(documents=documents)
+    store.add_documents(activities=data.activities)
     
     cfg = config.get("configurable", {})
     if "affected_records" in cfg:
-        cfg["affected_records"].extend([document.id for document in documents])
-    else:
-        cfg["affected_records"] = [document.id for document in documents]
+        cfg["affected_records"].extend([activity.id for activity in data.activities])
         
     return {
         "status": "success",
         "message": "Data saved",
-        "data_source": documents[0].metadata["data_source"] if documents else "n/a",
-        "records_affected": len(documents),
+        "data_source": data.activities[0].data_source if data.activities else "n/a",
+        "records_affected": len(data.activities),
+    }
+    
+
+@tool("vector_store_search")
+def vector_store_search(query: str, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()], k: int = 4):
+    """
+        Search and retrieve data from vector store
+        Parameters:
+            query: query to search for
+            k: number of results to return
+    """
+    
+    activities = store.similarity_search(query, k)
+    
+    cfg = config.get("configurable", {})
+    if "affected_records" in cfg:
+        cfg["affected_records"].extend([activity.id for activity in activities])
+    
+    return {
+        "similarity_search": {
+            "data_source": "pinecone",
+            "search_type": "vector_store",
+            "search_url": "https://www.pinecone.io",
+            "search_query": query,
+            "search_results": [activity.model_dump() for activity in activities]
+        }
+    }
+
+
+@tool("vector_store_by_id")
+def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
+    """
+        Search and retrieve data from vector store by ids
+        Parameters:
+            ids: list of ids to search for
+    """
+
+    activities = store.get_by_ids(ids)
+
+    cfg = config.get("configurable", {})
+    if "affected_records" in cfg:
+        cfg["affected_records"].extend([document.id for document in activities])
+
+    return {
+        "vector_store_by_id": {
+            "data_source": "pinecone",
+            "search_type": "vector_store",
+            "search_url": "https://www.pinecone.io",
+            "search_query": str(ids),
+            "search_results": [activity.model_dump() for activity in activities]
+        }
+    }
+    
+
+@tool("vector_store_delete")
+def vector_store_delete(ids: List[str], config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
+    """
+        Delete data from vector store by ids
+        Parameters:
+            ids: list of ids to delete
+    """
+
+    store.delete_by_ids(ids)
+
+    return {
+        "vector_store_by_id": {
+            "data_source": "pinecone",
+            "search_type": "vector_store",
+            "search_url": "https://www.pinecone.io",
+            "search_query": str(ids),
+            "search_results": []
+        }
+    }
+
+
+@tool("vector_store_stats")
+def vector_store_stats(config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
+    """
+        Get stats from vector store
+    """
+
+    stats = store.stats()
+
+    return {
+        "vector_store_stats": {
+            "data_source": "pinecone",
+            "search_type": "vector_store",
+            "search_url": "https://www.pinecone.io",
+            "search_query": "Store stats",
+            "search_results": [stats]
+        }
     }

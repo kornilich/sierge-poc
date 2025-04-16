@@ -28,7 +28,7 @@ class DataCollectionAgent:
         self.tools = tools
         self.llm_agent = self.llm.bind_tools(self.tools)
         
-        # Unfinite calls detection
+        # Unfinite duplicate tool calls detection
         self.tool_calls_history = {}
 
     def get_system_prompt(self, prompt, config, web_search_count=0):
