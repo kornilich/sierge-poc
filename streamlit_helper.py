@@ -8,8 +8,7 @@ from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ct
 from streamlit.external.langchain import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from agents.tools import ActivityDetails
-
+from agents.activities import ActivityDetails
 from typing import TypeVar, Callable
 import agents.prompts as prmt
 import json
@@ -164,7 +163,7 @@ def streamlit_prepare_execution(settings, config, agent, chat_input):
 
     return query
 
-def streamlit_report_execution(result, tools):
+def streamlit_report_execution(result, tools):    
     for msg in result["messages"]:
         if isinstance(msg, HumanMessage):
                 pass
@@ -204,29 +203,41 @@ def streamlit_report_execution(result, tools):
                                     "search_results", {}), expanded=True)
                     else:
                         st.markdown(
-                            f"**Results from {json_content.get('data_source')} saved:** {json_content.get('records')} records. Ref #{json_content.get('ref')}")
+                            f"**Results from {json_content.get('data_source')} saved:** {json_content.get('records_affected')} records")
             else:
                 st.write(msg)
         else:
             st.write(msg)
-            
-    return 
 
-def streamlit_display_storage(storage):
+def streamlit_display_storage(storage, data_ids):
     # Display stored search results
-    st.subheader(":gray[Cached data]")
+    st.subheader(":gray[Collected data]")
     
-    records = []
+    if not data_ids:
+        st.write("No data collected")
+        return
+    
+    activities = storage.get_by_ids(data_ids)
 
-    for index, (id, doc) in enumerate(storage.store.items()):
-        # docs have keys 'id', 'vector', 'text', 'metadata'
-        # Convert string representation of dict to actual dict first
-        activity_data = eval(doc['text'])  # text contains string repr of dict
-        activity = ActivityDetails(**activity_data)
-        activity_dict = activity.model_dump()
-        records.append(activity_dict)
-
-    df = pd.DataFrame(records)
+    # Convert activities to DataFrame
+    df = pd.DataFrame([activity.model_dump() for activity in activities])
+    
+    # Move id column to the end if it exists
+    cols = [col for col in df.columns if col != 'id'] + ['id']
+    df = df[cols]
+    
+    # Convert timestamp fields to datetime
+    df['created'] = pd.to_datetime(df['created_at'], unit='s')
+    df['updated'] = pd.to_datetime(df['updated_at'], unit='s')
+    
+    # Add 'new' column based on created_at and updated_at comparison
+    df['new'] = (df['created_at'] == df['updated_at']).map({True: 'yes', False: 'no'})
+    # Move 'new' column to first position
+    cols = ['new'] + [col for col in df.columns if col != 'new']
+    df = df[cols]
+    
+    # Remove timestamp columns
+    df = df.drop(['created_at', 'updated_at'], axis=1)        
 
     # Group by source and display in expandable sections
     if len(df) > 0 and 'data_source' in df.columns:

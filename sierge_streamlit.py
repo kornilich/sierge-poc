@@ -23,17 +23,19 @@ from streamlit_helper import (
 if 'chat_mode' not in st.session_state:
     st.session_state.chat_mode = "collect"
     st.session_state.storage = VectorDatabase()
+    st.session_state.affected_records = ["0"] #HACK: Keep this to preserve var in runnable config, otherwise it will be removed
     
 chat_mode = st.session_state.chat_mode
     
 load_environment()
 settings = streamlit_settings()
 
-if chat_mode == "collect":        
+if chat_mode == "collect":     
     config = RunnableConfig({
         "location": settings["location"],
         "search_limit": settings["search_limit"],
         "number_of_results": settings["number_of_results"],
+        "affected_records": st.session_state.affected_records,
         "callbacks": [get_streamlit_cb(st.empty())],
     })
 
@@ -55,9 +57,9 @@ if chat_mode == "collect":
                 config=config
             )
 
-            streamlit_report_execution(result, tools)
+        streamlit_report_execution(result, tools)
             
-        # streamlit_display_storage(agent.vector_store)
+        streamlit_display_storage(st.session_state.storage, st.session_state.affected_records)
         
         # def click_button():
         #     st.session_state.chat_mode = "itinerary"

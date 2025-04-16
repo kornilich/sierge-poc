@@ -1,82 +1,15 @@
 import json
 import os
+import uuid
 from serpapi import GoogleSearch
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import InjectedStore
-from typing import Optional, List, Dict, Literal, Annotated
-from pydantic import BaseModel, Field
+from typing import List, Dict, Annotated
 from langchain_core.documents import Document
 
 from agents.vector_database import VectorDatabase
-
-
-CategoryEnum = Literal["Live Entertainment", "Movies & Film", "Museums & Exhibits", "Community Events & Activities",
-                       "Sports & Recreation", "Health & Wellness", "Learning & Skill-Building", "Shopping", "Food & Drink Experiences", "Self-Guided Activities & Destinations", "Other"]
-
-
-class ActivityDetails(BaseModel):
-    """Represents detailed information about an activity or event.
-If certain fields lack sufficient data or are unavailable, they will be assigned the value `N/A`    
-    """
-
-    data_source: Optional[str] = Field(
-        default="Model", description="Source of the information. Can be 'Model' or tool name.")
-    ref: str = Field(
-        default="0", description="For internal use only")
-    category: Optional[str] = Field(default="Other")
-    name: Optional[str] = Field(
-        default=None, description="Name/Title of the activity (e.g., Event Name, Venue Name, Destination Name).")
-    description: Optional[str] = Field(default=None,
-                                       description="Brief overview of activity, including cuisine, atmosphere, features and other relevant information")
-    location: Optional[str] = Field(
-        default=None, description="Location details (Address, GPS coordinates, or general area).")
-    website: Optional[str] = Field(
-        default=None, description="Website of the activity.")
-    start_time: Optional[str] = Field(
-        default=None, description="Start time for time-bound activities.")
-    end_time: Optional[str] = Field(
-        default=None, description="End time for time-bound activities.")
-    hours_of_operation: Optional[str] = Field(
-        default=None, description="Hours of operation for ongoing activities.")
-    cost: Optional[str] = Field(
-        default=None, description="Cost & Pricing details (Free, Ticket Price, Price Range).")
-    booking_info: Optional[str] = Field(
-        default=None, description="Booking or registration info (e.g., where to buy tickets or RSVP requirements).")
-
-    # Nice-to-Have Fields
-    family_friendliness: Optional[str] = Field(
-        None, description="Indicates if the activity is family-friendly.")
-    accessibility_features: Optional[List[str]] = Field(
-        None,
-        description=(
-            "Accessibility features available (e.g., wheelchair accessible, ASL interpretation). "
-            "Alternatively, a method to assess whether accessibility features are needed."
-        )
-    )
-    age_restrictions: Optional[str] = Field(
-        None, description="Age restrictions for the activity (e.g., All ages, 18+, etc.).")
-    indoor_outdoor: Optional[str] = Field(
-        None, description="Indicates if the activity is indoor or outdoor.")
-    recommended_attire_or_equipment: Optional[str] = Field(
-        None,
-        description="Recommended attire or equipment for the activity (e.g., dress code or bring your own gear)."
-    )
-    weather_considerations: Optional[str] = Field(
-        None,
-        description=(
-            "Weather-related considerations (Rain date, weather-related cancellations, recommended conditions)."
-        )
-    )
-
-
-class ActivitiesList(BaseModel):
-    """Holds a collection of activity details representing recommendations"""
-    activities: List[ActivityDetails]
-    reason: Optional[str] = Field(
-        default="No reason provided", description="Reason for the recommendations and tools selection.")
-
-
+from agents.activities import ActivitiesList
 @tool("google_organic_search")
 def google_organic_search(query: str, config: RunnableConfig):
     """Universal search tool to find all places to go out using Google search. Can also be used
@@ -226,31 +159,41 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
     """
         Save the results provided by other tools to persistent storage for future use.
         Parameters:
-            data: The results in ActivitiesList schema to save
+            data: The results in ActivitiesList schema to save  
+        Returns:
+            status: "success" if the result was saved successfully
+            message: "Data saved" if the result was saved successfully
+            data_source: "data_source" of the result
+            records_affected: number of records saved
     """
 
     documents = []
 
-    ref = str(store.count())
     for record in data.activities:
-        record.ref = ref
+        id = str(uuid.uuid4())
         document = Document(
-            id=record.name,
+            id=id,
             page_content=str(record.model_dump()),
             metadata={
-                "data_source": record.data_source,
                 "name": record.name,
-                "category": record.category
+                "location": record.location,
+                "category": record.category,
+                "data_source": record.data_source,
             }
         )
         documents.append(document)
         
     store.add_documents(documents=documents)
-
+    
+    cfg = config.get("configurable", {})
+    if "affected_records" in cfg:
+        cfg["affected_records"].extend([document.id for document in documents])
+    else:
+        cfg["affected_records"] = [document.id for document in documents]
+        
     return {
         "status": "success",
         "message": "Data saved",
         "data_source": documents[0].metadata["data_source"] if documents else "n/a",
-        "records": len(documents),
-        "ref": ref
+        "records_affected": len(documents),
     }

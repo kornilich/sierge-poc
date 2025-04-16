@@ -27,6 +27,9 @@ class DataCollectionAgent:
 
         self.tools = tools
         self.llm_agent = self.llm.bind_tools(self.tools)
+        
+        # Unfinite calls detection
+        self.tool_calls_history = {}
 
     def get_system_prompt(self, prompt, config, web_search_count=0):
         # Direct access to config if not grpah invoked, otherwise use graph config via configurable
@@ -87,18 +90,32 @@ class DataCollectionAgent:
 
     def should_continue(self, state: MessagesState):
         """Determine whether to continue to tools or end"""
-        last_message = state["messages"][-1]
+        last_message = state["messages"][-1]                
 
         # TODO: Rework ToolNode to regular node for smart exception and error handling
         # This is a workaround to handle errors in ToolNode and it's not a good practice
-
-        # TODO: Tool initite call control
         # TODO: Maybe move search limit here
         for message in state["messages"]:
             if isinstance(message, ToolMessage) and message.status == "error":
                 raise Exception(message.content)
 
         if "tool_calls" in last_message.additional_kwargs:
+            for call in last_message.additional_kwargs["tool_calls"]:
+                fn_name = call["function"]["name"]
+                fn_args = call["function"]["arguments"]
+                                                                
+                if fn_name not in self.tool_calls_history:
+                    self.tool_calls_history[fn_name] = {fn_args: 1}
+                elif fn_args not in self.tool_calls_history[fn_name]:
+                    self.tool_calls_history[fn_name][fn_args] = 1
+                else:
+                    self.tool_calls_history[fn_name][fn_args] += 1
+                         
+                # Infinite tool calls control    
+                limit = 3
+                if self.tool_calls_history[fn_name][fn_args] >= limit:
+                    raise Exception(f"Tool call limit reached ({limit}): {fn_name} with args: {fn_args}")
+
             return "Search"
         else:
             return "Results"
