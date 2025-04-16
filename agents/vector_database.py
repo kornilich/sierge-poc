@@ -24,8 +24,8 @@ class VectorDatabase:
         stats = self.index.describe_index_stats()
         return stats.to_dict()
         
-    def similarity_search(self, query: str, k: int = 4):
-        results = self.vector_store.similarity_search(query, k=k)
+    def similarity_search(self, query: str, k: int = 4, namespace: str = ""):
+        results = self.vector_store.similarity_search(query, k=k, namespace=namespace)
         
         activities = []
         for doc in results:
@@ -36,8 +36,8 @@ class VectorDatabase:
         return activities
     
     
-    def get_by_ids(self, ids: list[str]):        
-        vectors = self.index.fetch(ids).vectors
+    def get_by_ids(self, ids: list[str], namespace: str):        
+        vectors = self.index.fetch(ids, namespace=namespace).vectors
         
         activities = []
         
@@ -48,7 +48,7 @@ class VectorDatabase:
             
         return activities
     
-    def add_documents(self, activities: list[ActivityDetails]):
+    def add_documents(self, activities: list[ActivityDetails], namespace: str):
         # Create a list to store unique documents 
         
         for activity in activities:
@@ -92,7 +92,7 @@ class VectorDatabase:
             )
             documents.append(document)
                                         
-            self.vector_store.add_documents(documents)
+            self.vector_store.add_documents(documents, namespace=namespace)
             
     def delete_by_ids(self, ids: list[str]):
         self.index.delete(ids)

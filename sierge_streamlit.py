@@ -9,7 +9,7 @@ from agents.vector_database import VectorDatabase
 import agents.tools as tools_set
 import agents.prompts as prmt
 
-
+from streamlit_helper import COLLECTION_MODE, DISCOVERY_MODE, ITINERARY_MODE
 from streamlit_helper import (
     get_streamlit_cb,
     streamlit_settings,
@@ -23,12 +23,7 @@ from streamlit_helper import (
 )
 
 ######## Start here ########
-COLLECTION_MODE = "Collection"
-DISCOVERY_MODE = "Discovery"
-ITINERARY_MODE = "Itinerary"
-
 chat_mode_list = [COLLECTION_MODE, DISCOVERY_MODE, ITINERARY_MODE]
-
 
 # Initialize session state
 if "memory" not in st.session_state:
@@ -74,7 +69,8 @@ if chat_mode == COLLECTION_MODE:
 
         streamlit_report_execution(result, tools)
 
-        streamlit_display_storage(vector_store, affected_records)
+        streamlit_display_storage(
+            vector_store, affected_records, settings["location"])
     else:
         streamlit_show_collection_home(agent)
 elif chat_mode == DISCOVERY_MODE:
@@ -89,17 +85,18 @@ elif chat_mode == DISCOVERY_MODE:
     chat_input = st.chat_input("Type query to search vector store...")
     if chat_input:
         config = RunnableConfig({
+            "location": settings["location"],
             "thread_id": "1",
             "affected_records": affected_records,
             "callbacks": [get_streamlit_cb(st.empty())],
         })
         messages = [HumanMessage(content=chat_input)]
-        messages.append(SystemMessage(content=prmt.vector_system_prompt))
+        messages.append(SystemMessage(content=prmt.discovery_system_prompt))
 
         result = agent.invoke(input={"messages": messages}, config=config)
 
         streamlit_report_execution(result, tools)
-        streamlit_display_storage(vector_store, affected_records, "new")
+        streamlit_display_storage(vector_store, affected_records, "new", settings["location"])
     else:
         streamlit_show_generic_home(agent, tools, "Discovery mode", "pinecone_logo.png",
                                     "Query the cached database (vector store) for existing information")

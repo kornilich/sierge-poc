@@ -7,17 +7,23 @@ from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ctx
 from streamlit.external.langchain import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain_core.messages import SystemMessage,AIMessage, HumanMessage, ToolMessage
+from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, ToolMessage
 from typing import TypeVar, Callable
 import agents.prompts as prmt
 import json
 
+COLLECTION_MODE = "Collection"
+DISCOVERY_MODE = "Discovery"
+ITINERARY_MODE = "Itinerary"
+
 
 class slCallbackHandler(StreamlitCallbackHandler):
     def on_chat_model_start(self, serialized, messages, **kwargs):
-        return self.on_llm_start(serialized=serialized, prompts=messages, **kwargs)        
+        return self.on_llm_start(serialized=serialized, prompts=messages, **kwargs)
 
 # Progress callback wrapper
+
+
 def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
     fn_return_type = TypeVar('fn_return_type')
 
@@ -25,7 +31,7 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
         ctx = get_script_run_ctx()
 
         def wrapper(*args, **kwargs) -> fn_return_type:
-            try:    
+            try:
                 add_script_run_ctx(ctx=ctx)
                 r = fn(*args, **kwargs)
                 return r
@@ -46,46 +52,47 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
 def streamlit_settings(chat_mode_list, current_chat_mode=None):
     st.set_page_config(page_title='Sierge PoC', layout='wide')
 
+    user_preferences = ""
+    data_collection_prompt = ""
+    itinerary_instructions = ""
+    search_limit = 1
+    number_of_results = 5
+
     with st.sidebar:
-        with st.expander("Preferences"):
-            contextual_preferences = st.text_area(
-                ":orange[**Contextual Preferences**]",
-                value=prmt.contextual_preferences_default, height=72*3)
-            fixed_preferences = st.text_area(
-                ":orange[**Fixed Preferences**]",
-                value=prmt.fixed_preferences_default, height=72*3)
-
-        with st.expander("Prompts"):
-            system_common_prompt = st.text_area(
-                ":orange[**Common**]",
-                value=prmt.system_common_prompt, height=72*3)
-            data_sources_prompt = st.text_area(
-                ":orange[**Data collection**]",
-                value=prmt.data_sources_prompt, height=72*3)
-            summarize_instructions = st.text_area(
-                ":orange[**Summarize**]",
-                value=prmt.system_agent_summarize, height=72*3)
-
-        with st.expander("Agent settings"):
-            model = st.selectbox("Model", ("gpt-4o-mini"))
-            st.selectbox("Web search", ("serpapi"))
-            location = st.selectbox(
-                "Location", ("Dallas, Texas, United States", "Los Angeles, California, United States"))
-            search_limit = st.slider(
-                "Search limit", min_value=0, max_value=20, value=1)
-            number_of_results = st.slider(
-                "Number of results", min_value=5, max_value=20, value=5)
-
         chat_mode = st.segmented_control(
             "Data mode", chat_mode_list, default=current_chat_mode, selection_mode="single"
         )
 
+        if chat_mode == COLLECTION_MODE:
+            with st.expander("Preferences"):
+                user_preferences = st.text_area(
+                    ":orange[**Fixed, Contextual, Situational**]", value=prmt.user_preferences, height=72*6)
+
+            with st.expander("Instructions"):
+                data_collection_prompt = st.text_area(
+                    ":orange[**Data collection**]",
+                    value=prmt.data_collection_prompt, height=72*6)
+
+            # itinerary_instructions = st.text_area(
+            #     ":orange[**Itinerary**]",
+            #     value=prmt.system_agent_itinerary, height=72*3)
+
+        with st.expander("Agent settings", expanded=True):
+            location = st.selectbox(
+                "Location", ("Dallas, Texas, United States", "Los Angeles, California, United States"))
+            if chat_mode == COLLECTION_MODE:
+                search_limit = st.slider(
+                    "Search limit", min_value=0, max_value=20, value=1)
+                number_of_results = st.slider(
+                    "Number of results", min_value=5, max_value=20, value=5)
+            model = st.selectbox("Model", ("gpt-4o-mini"))
+            if chat_mode == COLLECTION_MODE:
+                st.selectbox("Web search", ("serpapi"))
+
     return {
-        "contextual_preferences": contextual_preferences,
-        "fixed_preferences": fixed_preferences,
-        "system_common_prompt": system_common_prompt,
-        "data_sources_prompt": data_sources_prompt,
-        "summarize_instructions": summarize_instructions,
+        "user_preferences": user_preferences,
+        "data_collection_prompt": data_collection_prompt,
+        "itinerary_instructions": itinerary_instructions,
         "model": model,
         "location": location,
         "search_limit": search_limit,
@@ -93,11 +100,12 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
         "chat_mode": chat_mode
     }
 
+
 def streamlit_show_collection_home(agent):
     col1, col2 = st.columns([1, 5])
     with col1:
         st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
-                    use_container_width=True)
+                 use_container_width=True)
     with col2:
         c1, c2 = st.columns([3, 1])
         with c1:
@@ -115,8 +123,9 @@ def streamlit_show_collection_home(agent):
         st.write("Tool name and instructions for the agent on when and how using it")
         for tool in agent.tools:
             st.markdown(f"**{tool.name}**: {tool.description}")
-            
+
     return
+
 
 def streamlit_show_itinerary_home(agent):
     col1, col2 = st.columns([1, 5])
@@ -172,13 +181,12 @@ def streamlit_show_generic_home(agent, tools, title, image_name, description):
     return
 
 
-def streamlit_prepare_execution(settings, config, agent, chat_input):  
-    query = f"{settings['fixed_preferences']} \n\n {settings['contextual_preferences']} \n\n {chat_input}"
+def streamlit_prepare_execution(settings, config, agent, chat_input):
+    query = f"{settings['user_preferences']} \n\n {chat_input}"
 
     with st.chat_message("ai"):
         with st.expander("Data collection prompt", expanded=False):
-            st.write(agent.get_system_prompt(
-                prmt.system_data_collection_prompt_template, config))
+            st.write(agent.get_system_prompt(prmt.data_collection_prompt, config))
 
     with st.chat_message("human"):
         with st.expander("Human prompt", expanded=False):
@@ -188,17 +196,13 @@ def streamlit_prepare_execution(settings, config, agent, chat_input):
                 f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
             )
 
-    # with st.chat_message("ai"):
-    #     with st.expander("Summarize prompt", expanded=False):
-    #         st.write(agent.get_system_prompt(
-    #             settings["system_common_prompt"] + "\n\n" + settings["summarize_instructions"], config, 0))
-
     return query
 
-def streamlit_report_execution(result, tools):    
+
+def streamlit_report_execution(result, tools):
     for msg in result["messages"]:
         if isinstance(msg, HumanMessage):
-                pass
+            pass
         elif isinstance(msg, AIMessage):
             with st.chat_message("assistant"):
                 if hasattr(msg, 'additional_kwargs'):
@@ -245,40 +249,42 @@ def streamlit_report_execution(result, tools):
         else:
             st.write(msg)
 
-def streamlit_display_storage(storage, data_ids, group_by="data_source"):
+
+def streamlit_display_storage(storage, data_ids, group_by="data_source", namespace=""):
     # Display stored search results
     st.subheader(":gray[Collected data]")
-    
+
     if not data_ids:
         st.write("No data collected")
         return
-    
-    activities = storage.get_by_ids(data_ids)
+
+    activities = storage.get_by_ids(data_ids, namespace)
 
     # Convert activities to DataFrame
     df = pd.DataFrame([activity.model_dump() for activity in activities])
-    
+
     # Move id column to the end if it exists
     cols = [col for col in df.columns if col != 'id'] + ['id']
-    
+
     if len(cols) < 2:
         st.error("Not enough columns to display data")
         return
-    
+
     df = df[cols]
-    
+
     # Convert timestamp fields to datetime
     df['created'] = pd.to_datetime(df['created_at'], unit='s')
     df['updated'] = pd.to_datetime(df['updated_at'], unit='s')
-    
+
     # Add 'new' column based on created_at and updated_at comparison
-    df['new'] = (df['created_at'] == df['updated_at']).map({True: 'yes', False: 'no'})
+    df['new'] = (df['created_at'] == df['updated_at']
+                 ).map({True: 'yes', False: 'no'})
     # Move 'new' column to first position
     cols = ['new'] + [col for col in df.columns if col != 'new']
     df = df[cols]
-    
+
     # Remove timestamp columns
-    df = df.drop(['created_at', 'updated_at'], axis=1)        
+    df = df.drop(['created_at', 'updated_at'], axis=1)
 
     # Group by source and display in expandable sections
     if len(df) > 0 and group_by in df.columns:
@@ -286,7 +292,7 @@ def streamlit_display_storage(storage, data_ids, group_by="data_source"):
             source_df = df[df[group_by] == source]
             with st.expander(f"Results from {source}"):
                 st.dataframe(source_df.drop('data_source', axis=1),
-                                use_container_width=True)
+                             use_container_width=True)
     else:
         st.error("Structure issue: no 'data_source' column found")
         st.dataframe(df, use_container_width=True)
@@ -304,5 +310,5 @@ def load_environment():
     os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
     os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
     os.environ["PINECONE_INDEX"] = st.secrets["PINECONE_INDEX"]
-    
+
     return

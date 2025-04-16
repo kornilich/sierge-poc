@@ -166,10 +166,11 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
             data_source: "data_source" of the result
             records_affected: number of records saved
     """
-
-    store.add_documents(activities=data.activities)
-    
     cfg = config.get("configurable", {})
+    namespace = cfg.get("location", "")
+
+    store.add_documents(activities=data.activities, namespace=namespace)
+    
     if "affected_records" in cfg:
         cfg["affected_records"].extend([activity.id for activity in data.activities])
         
@@ -190,9 +191,11 @@ def vector_store_search(query: str, config: RunnableConfig, store: Annotated[Vec
             k: number of results to return
     """
     
-    activities = store.similarity_search(query, k)
-    
     cfg = config.get("configurable", {})
+    namespace = cfg.get("location", "")
+    
+    activities = store.similarity_search(query, k, namespace)
+    
     if "affected_records" in cfg:
         cfg["affected_records"].extend([activity.id for activity in activities])
     
@@ -214,10 +217,11 @@ def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[
         Parameters:
             ids: list of ids to search for
     """
-
-    activities = store.get_by_ids(ids)
-
     cfg = config.get("configurable", {})
+    namespace = cfg.get("location", "")
+
+    activities = store.get_by_ids(ids, namespace)
+
     if "affected_records" in cfg:
         cfg["affected_records"].extend([document.id for document in activities])
 

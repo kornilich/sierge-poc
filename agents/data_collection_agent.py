@@ -1,7 +1,7 @@
 import os
 
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, ToolMessage
+from langchain_core.messages import SystemMessage, AIMessage, ToolMessage
 from langgraph.graph import StateGraph
 from langgraph.graph import START, END
 from langgraph.prebuilt import ToolNode
@@ -13,8 +13,7 @@ import agents.prompts as prmt
 
 class DataCollectionAgent:
     def __init__(self, vector_store, tools, settings):
-        self.system_common_prompt = settings["system_common_prompt"]
-        self.data_sources_prompt = settings["data_sources_prompt"]
+        self.data_collection_prompt = settings["data_collection_prompt"]
         self.gpt_model = settings["model"]
 
         self.vector_store = vector_store
@@ -32,12 +31,6 @@ class DataCollectionAgent:
         self.tool_calls_history = {}
 
     def get_system_prompt(self, prompt, config, web_search_count=0):
-        # Direct access to config if not grpah invoked, otherwise use graph config via configurable
-        cfg = config.get('configurable', config) 
-        
-        location = cfg.get('location', '')
-        search_limit = cfg.get('search_limit', 0)
-        number_of_results = cfg.get('number_of_results', 0)
         def _format_prompt(prompt, **kwargs):
             # Count number of placeholders in the prompt
             prompt_before = prompt
@@ -49,13 +42,18 @@ class DataCollectionAgent:
                 result = _format_prompt(result, **kwargs)
 
             return result
+        
+        # Direct access to config if not graph invoked, otherwise use graph config via configurable
+        cfg = config.get('configurable', config) 
+        
+        location = cfg.get('location', '')
+        search_limit = cfg.get('search_limit', 0)
+        number_of_results = cfg.get('number_of_results', 0)
 
         limit = search_limit - web_search_count
-        if limit < 0:
-            limit = 0
-
-        system_prompt = _format_prompt(prompt, commont_prompt=self.system_common_prompt,
-                                       data_sources_prompt=self.data_sources_prompt, location=location, search_limit=limit, number_of_results=number_of_results)
+        limit = 0 if limit < 0 else limit
+        
+        system_prompt = _format_prompt(prompt, location=location, search_limit=limit, number_of_results=number_of_results)
 
         return system_prompt
 
@@ -72,7 +70,7 @@ class DataCollectionAgent:
                         web_search_count += 1
 
         system_prompt = self.get_system_prompt(
-            prmt.system_data_collection_prompt_template, config, web_search_count)
+            prmt.data_collection_prompt, config, web_search_count)
         
         if web_search_count >= search_limit:
             system_prompt = system_prompt + \
