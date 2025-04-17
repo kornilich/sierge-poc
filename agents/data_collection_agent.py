@@ -31,18 +31,6 @@ class DataCollectionAgent:
         self.tool_calls_history = {}
 
     def get_system_prompt(self, prompt, config, web_search_count=0):
-        def _format_prompt(prompt, **kwargs):
-            # Count number of placeholders in the prompt
-            prompt_before = prompt
-
-            template = PromptTemplate.from_template(prompt)
-            result = template.format(**kwargs)
-
-            if prompt_before != result:
-                result = _format_prompt(result, **kwargs)
-
-            return result
-        
         # Direct access to config if not graph invoked, otherwise use graph config via configurable
         cfg = config.get('configurable', config) 
         
@@ -53,7 +41,7 @@ class DataCollectionAgent:
         limit = search_limit - web_search_count
         limit = 0 if limit < 0 else limit
         
-        system_prompt = _format_prompt(prompt, location=location, search_limit=limit, number_of_results=number_of_results)
+        system_prompt = prmt.format_prompt(prompt, location=location, search_limit=limit, number_of_results=number_of_results)
 
         return system_prompt
 
@@ -70,7 +58,7 @@ class DataCollectionAgent:
                         web_search_count += 1
 
         system_prompt = self.get_system_prompt(
-            prmt.data_collection_prompt, config, web_search_count)
+            prmt.data_collection_system_prompt, config, web_search_count)
         
         if web_search_count >= search_limit:
             system_prompt = system_prompt + \

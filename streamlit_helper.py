@@ -12,6 +12,9 @@ from typing import TypeVar, Callable
 import agents.prompts as prmt
 import json
 
+from langchain_core.runnables.graph import NodeStyles
+
+
 COLLECTION_MODE = "Collection"
 DISCOVERY_MODE = "Discovery"
 ITINERARY_MODE = "Itinerary"
@@ -48,7 +51,6 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             setattr(st_cb, method_name, add_streamlit_context(method_func))
     return st_cb
 
-
 def streamlit_settings(chat_mode_list, current_chat_mode=None):
     st.set_page_config(page_title='Sierge PoC', layout='wide')
 
@@ -63,19 +65,22 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
             "Data mode", chat_mode_list, default=current_chat_mode, selection_mode="single"
         )
 
-        if chat_mode == COLLECTION_MODE:
+        if chat_mode in [COLLECTION_MODE, ITINERARY_MODE]:
             with st.expander("Preferences"):
                 user_preferences = st.text_area(
-                    ":orange[**Fixed, Contextual, Situational**]", value=prmt.user_preferences, height=72*6)
-
+                    ":red[**Fixed, Contextual, Situational**]", value=prmt.user_preferences, height=72*6)
+        
+        if chat_mode == COLLECTION_MODE:
             with st.expander("Instructions"):
                 data_collection_prompt = st.text_area(
-                    ":orange[**Data collection**]",
-                    value=prmt.data_collection_prompt, height=72*6)
+                    ":red[**Data collection**]",
+                    value=prmt.data_collection_system_prompt, height=72*6)
 
-            # itinerary_instructions = st.text_area(
-            #     ":orange[**Itinerary**]",
-            #     value=prmt.system_agent_itinerary, height=72*3)
+        if chat_mode == ITINERARY_MODE:
+            with st.expander("Instructions"):
+                itinerary_instructions = st.text_area(
+                    ":red[**Itinerary**]",
+                    value=prmt.itinerary_system_prompt, height=72*6)
 
         with st.expander("Agent settings", expanded=True):
             location = st.selectbox(
@@ -100,60 +105,7 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
         "chat_mode": chat_mode
     }
 
-
-def streamlit_show_collection_home(agent):
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
-                 use_container_width=True)
-    with col2:
-        c1, c2 = st.columns([3, 1])
-        with c1:
-            st.header(":blue[Data collection mode]")
-        with c2:
-            st.header(":gray[Sierge PoC]")
-        st.markdown("Instructions usage: **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization")
-
-    col1, col2 = st.columns([2, 2])
-    img = agent.runnable.get_graph().draw_png()
-    with col1:
-        st.image(img, width=400, caption="Congitive model")
-    with col2:
-        st.subheader(":gray[Data sources]")
-        st.write("Tool name and instructions for the agent on when and how using it")
-        for tool in agent.tools:
-            st.markdown(f"**{tool.name}**: {tool.description}")
-
-    return
-
-
-def streamlit_show_itinerary_home(agent):
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.image("https://media.lordicon.com/icons/wired/flat/2007-dallas-city.svg",
-                 use_container_width=True)
-    with col2:
-        c1, c2 = st.columns([3, 1])
-        with c1:
-            st.header(":blue[Itinerary mode]")
-        with c2:
-            st.header(":gray[Sierge PoC]")
-        # st.write(settings["summarize_instructions"])
-
-    col1, col2 = st.columns([2, 2])
-    img = agent.runnable.get_graph().draw_png()
-    with col1:
-        st.image(img, width=200, caption="Congitive model")
-    with col2:
-        st.subheader(":gray[Data sources]")
-        st.write("Tool name and instructions for the agent on when and how using it")
-        for tool in agent.tools:
-            st.markdown(f"**{tool.name}**: {tool.description}")
-
-    return
-
-
-def streamlit_show_generic_home(agent, tools, title, image_name, description):
+def streamlit_show_home(agent, tools, title, image_name, description):
     col1, col2 = st.columns([1, 5])
     with col1:
         st.image(f"assets/{image_name}",
@@ -168,7 +120,14 @@ def streamlit_show_generic_home(agent, tools, title, image_name, description):
         st.divider()
 
     col1, col2 = st.columns([1, 2])
-    img = agent.get_graph().draw_mermaid_png()
+    
+    node_styles = NodeStyles(
+        default='fill:#ff4b4b,line-height:1.2,fill-opacity:0.5, stroke:#ff4b4b',
+        first='fill-opacity:0',
+        last='fill-opacity:0',
+    )
+    
+    img = agent.get_graph().draw_mermaid_png(node_colors=node_styles)
 
     with col1:
         st.image(img, width=300, caption="Congitive model")
@@ -180,24 +139,28 @@ def streamlit_show_generic_home(agent, tools, title, image_name, description):
 
     return
 
-
-def streamlit_prepare_execution(settings, config, agent, chat_input):
-    query = f"{settings['user_preferences']} \n\n {chat_input}"
-
+def streamlit_prepare_execution(settings, config, agent, query, mode):    
     with st.chat_message("ai"):
-        with st.expander("Data collection prompt", expanded=False):
-            st.write(agent.get_system_prompt(prmt.data_collection_prompt, config))
+        if mode == COLLECTION_MODE:
+            with st.expander("Data collection prompt", expanded=False):
+                st.write(agent.get_system_prompt(prmt.data_collection_system_prompt, config))
+        else:
+            cfg = config.get('configurable', config)
+            location = cfg.get('location', '')
+
+            with st.expander("Itinerary prompt", expanded=False):
+                st.write(prmt.format_prompt(prmt.itinerary_system_prompt, location=location))
 
     with st.chat_message("human"):
         with st.expander("Human prompt", expanded=False):
-            st.write(query)
-            st.markdown(
-                f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['location']}]" +
-                f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
-            )
+            st.write(query)          
+            
+    settings_bages = f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['location']}]"
 
-    return query
-
+    if mode == COLLECTION_MODE:
+        settings_bages += f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
+        
+    st.markdown(settings_bages)
 
 def streamlit_report_execution(result, tools):
     for msg in result["messages"]:
@@ -249,7 +212,6 @@ def streamlit_report_execution(result, tools):
         else:
             st.write(msg)
 
-
 def streamlit_display_storage(storage, data_ids, group_by="data_source", namespace=""):
     # Display stored search results
     st.subheader(":gray[Collected data]")
@@ -290,7 +252,7 @@ def streamlit_display_storage(storage, data_ids, group_by="data_source", namespa
     if len(df) > 0 and group_by in df.columns:
         for source in df[group_by].unique():
             source_df = df[df[group_by] == source]
-            with st.expander(f"Results from {source}"):
+            with st.expander(f"{group_by}: {source}"):
                 st.dataframe(source_df.drop('data_source', axis=1),
                              use_container_width=True)
     else:

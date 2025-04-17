@@ -13,9 +13,7 @@ from streamlit_helper import COLLECTION_MODE, DISCOVERY_MODE, ITINERARY_MODE
 from streamlit_helper import (
     get_streamlit_cb,
     streamlit_settings,
-    streamlit_show_collection_home,
-    streamlit_show_generic_home,
-    streamlit_show_itinerary_home,
+    streamlit_show_home,
     streamlit_prepare_execution,
     streamlit_report_execution,
     streamlit_display_storage,
@@ -53,11 +51,11 @@ if chat_mode == COLLECTION_MODE:
     agent.setup()
 
     chat_input = st.chat_input(
-        "Type additonal query here to start data collection..")
+        "Type additonal query here to start data collection...")
 
     if chat_input:
-        query = streamlit_prepare_execution(
-            settings, config, agent, chat_input)
+        query = f"{settings['user_preferences']} \n\n {chat_input}"
+        streamlit_prepare_execution(settings, config, agent, query, COLLECTION_MODE)
 
         with st.spinner("Collecting data...", show_time=True):
             messages = [HumanMessage(content=query)]
@@ -72,15 +70,17 @@ if chat_mode == COLLECTION_MODE:
         streamlit_display_storage(
             vector_store, affected_records, settings["location"])
     else:
-        streamlit_show_collection_home(agent)
+        # streamlit_show_collection_home(agent)
+        streamlit_show_home(agent.runnable, tools, "Data collection mode", "data-mining.png",
+                                    "Instructions usage:\n\n **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization")                
 elif chat_mode == DISCOVERY_MODE:
     model = ChatOpenAI(model="gpt-4o", temperature=0)
     tools = [tools_set.vector_store_search, tools_set.vector_store_by_id,
              tools_set.vector_store_delete, tools_set.vector_store_stats]
 
     # memory = st.session_state.memory
-    agent = create_react_agent(
-        model, tools=tools, store=vector_store)
+    agent = create_react_agent(name="Discovery",
+        model=model, tools=tools, store=vector_store)
 
     chat_input = st.chat_input("Type query to search vector store...")
     if chat_input:
@@ -98,8 +98,36 @@ elif chat_mode == DISCOVERY_MODE:
         streamlit_report_execution(result, tools)
         streamlit_display_storage(vector_store, affected_records, "new", settings["location"])
     else:
-        streamlit_show_generic_home(agent, tools, "Discovery mode", "pinecone_logo.png",
+        streamlit_show_home(agent, tools, "Discovery mode", "pinecone-logo.png",
                                     "Query the cached database (vector store) for existing information")
-else:
-    # streamlit_show_itinerary_home(agent)
-    st.write(chat_mode)
+else: # Itinerary mode
+    model = ChatOpenAI(model="gpt-4o", temperature=0)
+    tools = [tools_set.vector_store_search, tools_set.vector_store_stats]
+
+    # memory = st.session_state.memory
+    agent = create_react_agent(name="Itinerary",
+                               model=model, tools=tools, store=vector_store)
+
+    chat_input = st.chat_input(
+        "Type additonal query here to start itinerary generation...")
+    if chat_input:
+        config = RunnableConfig({
+            "location": settings["location"],
+            "thread_id": "1",
+            "affected_records": affected_records,
+            "callbacks": [get_streamlit_cb(st.empty())],
+        })
+        messages = [HumanMessage(content=settings["user_preferences"] + "\n\n" + chat_input)]
+        messages.append(SystemMessage(content=prmt.itinerary_system_prompt))
+
+        streamlit_prepare_execution(
+            settings, config, agent, messages[0].content, ITINERARY_MODE)
+        
+        result = agent.invoke(input={"messages": messages}, config=config)
+
+        streamlit_report_execution(result, tools)
+        streamlit_display_storage(
+            vector_store, affected_records, "category", settings["location"])
+    else:
+        streamlit_show_home(agent, tools, "Itinerary mode", "itinerary.jpg",
+                                    "Itinerary generation based on user preferences and query. AI uses cached database (vector store) to generate itinerary.")
