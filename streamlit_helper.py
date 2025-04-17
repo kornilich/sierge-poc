@@ -57,7 +57,7 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
     user_preferences = ""
     data_collection_prompt = ""
     itinerary_instructions = ""
-    search_limit = 1
+    search_limit = 2
     number_of_results = 5
 
     with st.sidebar:
@@ -105,7 +105,7 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
         "chat_mode": chat_mode
     }
 
-def streamlit_show_home(agent, tools, title, image_name, description):
+def streamlit_show_home(agent, tools, title, image_name, description, hide_diagram=False):
     col1, col2 = st.columns([1, 5])
     with col1:
         st.image(f"assets/{image_name}",
@@ -118,8 +118,6 @@ def streamlit_show_home(agent, tools, title, image_name, description):
             st.header(":gray[Sierge PoC]")
         st.write(description)
         st.divider()
-
-    col1, col2 = st.columns([1, 2])
     
     node_styles = NodeStyles(
         default='fill:#ff4b4b,line-height:1.2,fill-opacity:0.5, stroke:#ff4b4b',
@@ -129,13 +127,21 @@ def streamlit_show_home(agent, tools, title, image_name, description):
     
     img = agent.get_graph().draw_mermaid_png(node_colors=node_styles)
 
-    with col1:
-        st.image(img, width=300, caption="Congitive model")
-    with col2:
+    def _list_tools():
         st.subheader(":gray[Tools]")
         st.write("Tool name and instructions for the agent on when and how using it")
         for tool in tools:
             st.markdown(f"**{tool.name}**: {tool.description}")
+
+    if hide_diagram:
+        _list_tools()
+    else: 
+        col1, col2 = st.columns([1, 2])
+
+        with col1:
+            st.image(img, width=300, caption="Congitive model")
+        with col2:
+            _list_tools()
 
     return
 
@@ -253,10 +259,10 @@ def streamlit_display_storage(storage, data_ids, group_by="data_source", namespa
         for source in df[group_by].unique():
             source_df = df[df[group_by] == source]
             with st.expander(f"{group_by}: {source}"):
-                st.dataframe(source_df.drop('data_source', axis=1),
+                st.dataframe(source_df.drop(group_by, axis=1),
                              use_container_width=True)
     else:
-        st.error("Structure issue: no 'data_source' column found")
+        st.error(f"Structure issue: no {group_by} column found")
         st.dataframe(df, use_container_width=True)
 
 

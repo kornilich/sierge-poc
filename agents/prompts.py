@@ -37,14 +37,14 @@ Phase 3: Save results
 - Save results using save_results tool
 
 Phase 4: Report back
-1. Report tools usage. Format: markdown table. Name: Tool usage. Columns:
+1. Explain how search budget was consumed
+2. Report tools usage. Format: markdown table. Name: Tool usage. Columns:
   - Tool name, if not provided, put "Model knowledge"
   - Results Retrieved / Saved. Where "Results Retrieved" is the number of results returned by the tool and "Results Saved" is the number of results saved to storage.
   - Reason why tool was used
   - Reason if some results were not saved
     
-2. Provide chain of thoughts
-3. Explain how search budget was consumed
+3. Provide chain of thoughts
 4. Do not show detailed recommendations or summary
 
 Operational Constraints:

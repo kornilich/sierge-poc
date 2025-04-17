@@ -45,8 +45,8 @@ if chat_mode == COLLECTION_MODE:
         "callbacks": [get_streamlit_cb(st.empty())],
     })
 
-    # tools = [tools_set.save_results, tools_set.google_organic_search, tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
-    tools = [tools_set.save_results]
+    tools = [tools_set.save_results, tools_set.google_organic_search,
+             tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
     agent = DataCollectionAgent(vector_store, tools, settings)
     agent.setup()
 
@@ -68,11 +68,11 @@ if chat_mode == COLLECTION_MODE:
         streamlit_report_execution(result, tools)
 
         streamlit_display_storage(
-            vector_store, affected_records, settings["location"])
+            vector_store, affected_records, group_by="data_source", namespace=settings["location"])
     else:
-        # streamlit_show_collection_home(agent)
+        hide_diagram = True if len(tools) > 3 else False
         streamlit_show_home(agent.runnable, tools, "Data collection mode", "data-mining.png",
-                                    "Instructions usage:\n\n **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization")                
+                                    "Instructions usage:\n\n **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization", hide_diagram)                
 elif chat_mode == DISCOVERY_MODE:
     model = ChatOpenAI(model="gpt-4o", temperature=0)
     tools = [tools_set.vector_store_search, tools_set.vector_store_by_id,
@@ -96,7 +96,7 @@ elif chat_mode == DISCOVERY_MODE:
         result = agent.invoke(input={"messages": messages}, config=config)
 
         streamlit_report_execution(result, tools)
-        streamlit_display_storage(vector_store, affected_records, "new", settings["location"])
+        streamlit_display_storage(vector_store, affected_records, group_by="new", namespace=settings["location"])
     else:
         streamlit_show_home(agent, tools, "Discovery mode", "pinecone-logo.png",
                                     "Query the cached database (vector store) for existing information")
