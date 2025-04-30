@@ -7,7 +7,6 @@ from langgraph.graph import START, END
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import MessagesState
 from langchain_core.runnables import RunnableConfig
-from langchain_core.prompts import PromptTemplate
 import agents.prompts as prmt
 
 

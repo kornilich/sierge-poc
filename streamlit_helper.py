@@ -11,6 +11,7 @@ from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, Tool
 from typing import TypeVar, Callable
 import agents.prompts as prmt
 import json
+import googlemaps
 
 from langchain_core.runnables.graph import NodeStyles
 
@@ -25,8 +26,6 @@ class slCallbackHandler(StreamlitCallbackHandler):
         return self.on_llm_start(serialized=serialized, prompts=messages, **kwargs)
 
 # Progress callback wrapper
-
-
 def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
     fn_return_type = TypeVar('fn_return_type')
 
@@ -50,6 +49,36 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
         if method_name.startswith('on_'):
             setattr(st_cb, method_name, add_streamlit_context(method_func))
     return st_cb
+
+def get_location_from_string(zip_code):
+    """Get location details from Google Maps API using zip code."""
+    if not zip_code:
+        return None
+        
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    if not api_key:
+        st.error("Google Maps API key not found in environment variables")
+        return None
+        
+    try:
+        gmaps = googlemaps.Client(key=api_key)
+        result = gmaps.geocode(zip_code)
+        
+        if result:
+            location = result[0]['geometry']['location']
+            formatted_address = result[0]['formatted_address']
+            
+            return {
+                "formatted_address": formatted_address,
+                "latitude": location['lat'],
+                "longitude": location['lng']
+            }
+        else:
+            st.error("No location found")
+            return None
+    except Exception as e:
+        st.error(f"Error fetching location data: {str(e)}")
+        return None
 
 def streamlit_settings(chat_mode_list, current_chat_mode=None):
     st.set_page_config(page_title='Sierge PoC', layout='wide')
@@ -85,6 +114,20 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
         with st.expander("Agent settings", expanded=True):
             location = st.selectbox(
                 "Location", ("Dallas, Texas, United States", "Los Angeles, California, United States"))
+            exact_location = st.text_input("Exact location", placeholder="Zip code, place or coordinates")
+            
+            geo_location = {}
+            final_location = exact_location if exact_location else location
+            
+            location_details = get_location_from_string(final_location)
+            if location_details:
+                st.info(f"📍 {location_details['formatted_address']}")
+                geo_location = {
+                    'lat': location_details['latitude'],
+                    'lon': location_details['longitude'],
+                    'formatted_address': location_details['formatted_address']
+                }
+            
             if chat_mode == COLLECTION_MODE:
                 search_limit = st.slider(
                     "Search limit", min_value=0, max_value=20, value=1)
@@ -100,6 +143,8 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
         "itinerary_instructions": itinerary_instructions,
         "model": model,
         "location": location,
+        "exact_location": exact_location,
+        "geo_location": geo_location,
         "search_limit": search_limit,
         "number_of_results": number_of_results,
         "chat_mode": chat_mode
@@ -156,6 +201,18 @@ def streamlit_prepare_execution(settings, config, agent, query, mode):
 
             with st.expander("Itinerary prompt", expanded=False):
                 st.write(prmt.format_prompt(prmt.itinerary_system_prompt, location=location))
+                
+    geo_location = settings['geo_location']
+
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.map(pd.DataFrame({
+            'lat': [geo_location['lat']],
+            'lon': [geo_location['lon']]
+        }), height=300)
+    with col2:
+        st.info(f"📍 {geo_location['formatted_address']}")
+        st.info(f"{geo_location['lat']}, {geo_location['lon']}")
 
     with st.chat_message("human"):
         with st.expander("Human prompt", expanded=False):
@@ -278,5 +335,6 @@ def load_environment():
     os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
     os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
     os.environ["PINECONE_INDEX"] = st.secrets["PINECONE_INDEX"]
+    os.environ["GOOGLE_MAPS_API_KEY"] = st.secrets["GOOGLE_MAPS_API_KEY"]
 
     return

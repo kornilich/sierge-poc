@@ -13,3 +13,5 @@ google-search-results
 langchain-pinecone
 
 pygraphviz
+
+googlemaps
