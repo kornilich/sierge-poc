@@ -53,16 +53,16 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             setattr(st_cb, method_name, add_streamlit_context(method_func))
     return st_cb
 
-def get_location_from_string(geo_location):
+def get_location_from_string(location_str):
     """Get location details from Google Maps API using zip code."""
-    if not geo_location:
+    if not location_str:
         return None
         
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
         
     try:
         gmaps = googlemaps.Client(key=api_key)
-        result = gmaps.geocode(geo_location)
+        result = gmaps.geocode(location_str)
         
         if result:
             location = result[0]['geometry']['location']
@@ -145,17 +145,17 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
                     value=prmt.itinerary_system_prompt, height=72*6)
 
         with st.expander("Agent settings", expanded=True):
-            location = st.selectbox(
+            base_location = st.selectbox(
                 "Location", ("Dallas, Texas, United States", "Los Angeles, California, United States"))
-            exact_location = st.text_input("Exact location", placeholder="Zip code, place or coordinates")
+            area_location = st.text_input("Area", placeholder="Zip code, place or coordinates")
             
-            geo_location = {}
-            final_location = exact_location if exact_location else location
+            exact_location = {}
+            area_location = area_location if area_location else base_location
             
-            location_details = get_location_from_string(final_location)
+            location_details = get_location_from_string(area_location)
             if location_details:
                 st.info(f"📍 {location_details['formatted_address']}")
-                geo_location = {
+                exact_location = {
                     'lat': location_details['latitude'],
                     'lon': location_details['longitude'],
                     'formatted_address': location_details['formatted_address']
@@ -175,9 +175,8 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
         "data_collection_prompt": data_collection_prompt,
         "itinerary_instructions": itinerary_instructions,
         "model": model,
-        "location": location,
+        "base_location": base_location,
         "exact_location": exact_location,
-        "geo_location": geo_location,
         "search_limit": search_limit,
         "number_of_results": number_of_results,
         "chat_mode": chat_mode
@@ -227,25 +226,26 @@ def streamlit_prepare_execution(settings, config, agent, query, mode):
     with st.chat_message("ai"):
         if mode == COLLECTION_MODE:
             with st.expander("Data collection prompt", expanded=False):
-                st.write(agent.get_system_prompt(prmt.data_collection_system_prompt, config))
+                st.write(agent.get_system_prompt(
+                    settings["data_collection_prompt"], config))
         else:
             cfg = config.get('configurable', config)
-            location = cfg.get('location', '')
+            base_location = cfg.get('base_location', '')
 
             with st.expander("Itinerary prompt", expanded=False):
-                st.write(prmt.format_prompt(prmt.itinerary_system_prompt, location=location))
+                st.write(prmt.format_prompt(settings["itinerary_instructions"], location=base_location))
                 
-    geo_location = settings['geo_location']
+    exact_location = settings['exact_location']
 
     col1, col2, col3 = st.columns(3)
     with col1:
         st.map(pd.DataFrame({
-            'lat': [geo_location['lat']],
-            'lon': [geo_location['lon']]
+            'lat': [exact_location['lat']],
+            'lon': [exact_location['lon']]
         }), height=300)
         
     weather_data = get_weather_data(
-        geo_location['lat'], geo_location['lon'])
+        exact_location['lat'], exact_location['lon'])
     
     if weather_data:
         with col2:
@@ -257,7 +257,7 @@ def streamlit_prepare_execution(settings, config, agent, query, mode):
             st.write(f"{dt.strftime('%A, %B %d, %Y at %H:%M')}")
             st.write(f"Time zone: {weather_data['time_zone']}")
             st.info(
-                f"📍{geo_location['formatted_address']}\n\n{geo_location['lat']}, {geo_location['lon']}")
+                f"📍{exact_location['formatted_address']}\n\n{exact_location['lat']}, {exact_location['lon']}")
         with col3:        
             st.subheader("Current Weather")
             col1, col2 = st.columns(2)
@@ -268,6 +268,8 @@ def streamlit_prepare_execution(settings, config, agent, query, mode):
                     delta=None
                 )
                 st.write(f"Feels like: {weather_data['feels_like']}° {weather_data['unit'][0]}")
+            if 'icon_url' in weather_data:
+                st.image(f"{weather_data['icon_url']}.png", width=50)
             with col2:
                 st.write(f"Humidity: {weather_data['humidity']}%")
                 st.write(f"Pressure: {weather_data['pressure']} hPa")
@@ -280,7 +282,7 @@ def streamlit_prepare_execution(settings, config, agent, query, mode):
         with st.expander("Human prompt", expanded=False):
             st.write(query)          
             
-    settings_bages = f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['location']}]"
+    settings_bages = f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['base_location']}]"
 
     if mode == COLLECTION_MODE:
         settings_bages += f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"

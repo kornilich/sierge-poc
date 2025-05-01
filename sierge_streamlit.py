@@ -33,12 +33,13 @@ affected_records = ["Blank"]
 
 load_environment()
 
-settings = streamlit_settings(chat_mode_list, DISCOVERY_MODE)
+settings = streamlit_settings(chat_mode_list, COLLECTION_MODE)
 chat_mode = settings["chat_mode"]
 
 if chat_mode == COLLECTION_MODE:
     config = RunnableConfig({
-        "location": settings["location"],
+        "base_location": settings["base_location"],
+        "exact_location": settings["exact_location"],
         "search_limit": settings["search_limit"],
         "number_of_results": settings["number_of_results"],
         "affected_records": affected_records,
@@ -68,7 +69,7 @@ if chat_mode == COLLECTION_MODE:
         streamlit_report_execution(result, tools)
 
         streamlit_display_storage(
-            vector_store, affected_records, group_by="data_source", namespace=settings["location"])
+            vector_store, affected_records, group_by="data_source", namespace=settings["base_location"])
     else:
         hide_diagram = True if len(tools) > 3 else False
         streamlit_show_home(agent.runnable, tools, "Data collection mode", "data-mining.png",
@@ -85,7 +86,8 @@ elif chat_mode == DISCOVERY_MODE:
     chat_input = st.chat_input("Type query to search vector store...")
     if chat_input:
         config = RunnableConfig({
-            "location": settings["location"],
+            "base_location": settings["base_location"],
+            "exact_location": settings["exact_location"],
             "thread_id": "1",
             "affected_records": affected_records,
             "callbacks": [get_streamlit_cb(st.empty())],
@@ -96,7 +98,7 @@ elif chat_mode == DISCOVERY_MODE:
         result = agent.invoke(input={"messages": messages}, config=config)
 
         streamlit_report_execution(result, tools)
-        streamlit_display_storage(vector_store, affected_records, group_by="new", namespace=settings["location"])
+        streamlit_display_storage(vector_store, affected_records, group_by="new", namespace=settings["base_location"])
     else:
         streamlit_show_home(agent, tools, "Discovery mode", "pinecone-logo.png",
                                     "Query the cached database (vector store) for existing information")
@@ -112,7 +114,8 @@ else: # Itinerary mode
         "Type additonal query here to start itinerary generation...")
     if chat_input:
         config = RunnableConfig({
-            "location": settings["location"],
+            "base_location": settings["base_location"],
+            "exact_location": settings["exact_location"],
             "thread_id": "1",
             "affected_records": affected_records,
             "callbacks": [get_streamlit_cb(st.empty())],
@@ -127,7 +130,7 @@ else: # Itinerary mode
 
         streamlit_report_execution(result, tools)
         streamlit_display_storage(
-            vector_store, affected_records, "category", settings["location"])
+            vector_store, affected_records, "category", settings["base_location"])
     else:
         streamlit_show_home(agent, tools, "Itinerary mode", "itinerary.jpg",
                                     "Itinerary generation based on user preferences and query. AI uses cached database (vector store) to generate itinerary.")

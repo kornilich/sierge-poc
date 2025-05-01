@@ -1,19 +1,27 @@
+# https://apify.com/apify/website-content-crawler
+
 import json
 import os
-import uuid
 from serpapi import GoogleSearch
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import InjectedStore
 from typing import List, Dict, Annotated
-from langchain_core.documents import Document
+
 
 from agents.vector_database import VectorDatabase
 from agents.activities import ActivitiesList
+from uule_convertor import UuleConverter
+
 @tool("google_organic_search")
 def google_organic_search(query: str, config: RunnableConfig):
-    """Universal search tool to find all places to go out using Google search. Can also be used
-    to augment more 'general' knowledge to a previous specialist query."""
+    """Universal search tool to find all places to go out using Google search. 
+
+Use it to search:
+- Movies & Film (showtimes, cinemas)
+- Other categories which are not covered by specialized search tools
+
+Can also be used to augment more 'general' knowledge to a previous specialist query."""
     # TODO: Consider pagination vs number of results
 
     result_types = [
@@ -23,7 +31,8 @@ def google_organic_search(query: str, config: RunnableConfig):
         "knowledge_graph",
         "discover_more_places",
         "events_results",
-        "top_sights"
+        "top_sights",
+        "showtimes",
     ]
 
     results = serpapi_search(query, "google", config, result_types)
@@ -31,13 +40,15 @@ def google_organic_search(query: str, config: RunnableConfig):
 
     return results
 
-
 @tool("google_events_search")
 def google_events_search(query: str, config: RunnableConfig):
-    """A specialized search tool that leverages Google's Event Search engine to find detailed, 
-real-time information about events. 
-This tool is designed to help users discover concerts, festivals, workshops, sports games, 
-and other activities based on their query, location, and preferences."""
+    """A specialized search tool that leverages 
+Google's Event Search engine to find detailed, real-time information about events. 
+Use this tool to find 
+- Live Entertainment Events: Music Concerts, Sporting events, comedy shows
+- Community Activities
+- Learning & Skillbuilding: cooking classes, art classes, workshops, seminars
+and other activities based on your query"""
 
     result_types = [
         "events_results",
@@ -48,13 +59,19 @@ and other activities based on their query, location, and preferences."""
 
     return results
 
-
 @tool("google_local_search")
 def google_local_search(query: str, config: RunnableConfig):
     """A specialized search tool that uses Google's Local Search engine to find 
 geographically constrained results for places, businesses, and activities. 
-This tool helps users discover nearby locations such as restaurants, attractions, 
-shops, and services based on their query and current location."""
+
+Use it to find following categories:
+- Outdoor & Recreation Activities: Hiking trails, Biking, Water sports, parks, apple picking, zoo, park events, farms, beach
+- Health & Wellness
+- Shopping: shopping mall, lifestyle center, boutique, outdoor shopping plaza, sample sales, estate sales, warehouse sales
+- Food & Drink Experiences
+- Self-Guided Activities
+- Attractions
+"""
 
     result_types = [
         "ads_results",
@@ -66,7 +83,6 @@ shops, and services based on their query and current location."""
     #  , mock_file = "mockups/serpapi-locals-1.json")
 
     return results
-
 
 @tool("yelp_search")
 def yelp_search(query: str, config: RunnableConfig):
@@ -84,7 +100,7 @@ def yelp_search(query: str, config: RunnableConfig):
     cfg = config.get("configurable", {})
     extra_params = {
         "find_desc": query,
-        "find_loc": cfg["location"],
+        "find_loc": cfg["exact_location"]["formatted_address"],
     }
 
     results = serpapi_search(query, "yelp", config, result_types, extra_params)
@@ -92,18 +108,21 @@ def yelp_search(query: str, config: RunnableConfig):
 
     return results
 
-
 def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types: List[str] = None, extra_params: Dict[str, str] = None, mock_file: str = None):
     # TODO: Consider use pagination together with number of results
+
 
     cfg = config.get("configurable", {})
     params = {
         "engine": engine,
         "api_key": os.getenv("SERPAPI_KEY"),
-        "location": cfg["location"],
         "num": cfg["number_of_results"],
         "q": query
     }
+    
+    exact_location = cfg["exact_location"]
+    params["uule"] = UuleConverter.encode(
+        exact_location["lat"], exact_location["lon"])
 
     if extra_params:
         params.update(extra_params)
@@ -125,7 +144,8 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
 
     search_query = results.get("search_parameters", {}).get("q", "")
     if search_query == "":
-        search_query = results.get("find_desc", {}).get("q", "")  # Yelp
+        search_query = results.get("search_parameters", {}).get(
+            "find_desc", "")  # Yelp
 
     if mock_file:
         search_query = "Mockup results"
@@ -153,7 +173,6 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
         
     return filtered_results
 
-
 @tool("save_results")
 def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
     """
@@ -167,7 +186,7 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
             records_affected: number of records saved
     """
     cfg = config.get("configurable", {})
-    namespace = cfg.get("location", "")
+    namespace = cfg.get("base_location", "")
 
     store.add_documents(activities=data.activities, namespace=namespace)
     
@@ -181,7 +200,6 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
         "records_affected": len(data.activities),
     }
     
-
 @tool("vector_store_search")
 def vector_store_search(query: str, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()], k: int = 4):
     """
@@ -192,7 +210,7 @@ def vector_store_search(query: str, config: RunnableConfig, store: Annotated[Vec
     """
     
     cfg = config.get("configurable", {})
-    namespace = cfg.get("location", "")
+    namespace = cfg.get("base_location", "")
     
     activities = store.similarity_search(query, k, namespace)
     
@@ -209,7 +227,6 @@ def vector_store_search(query: str, config: RunnableConfig, store: Annotated[Vec
         }
     }
 
-
 @tool("vector_store_by_id")
 def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
     """
@@ -218,7 +235,7 @@ def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[
             ids: list of ids to search for
     """
     cfg = config.get("configurable", {})
-    namespace = cfg.get("location", "")
+    namespace = cfg.get("base_location", "")
 
     activities = store.get_by_ids(ids, namespace)
 
@@ -235,7 +252,6 @@ def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[
         }
     }
     
-
 @tool("vector_store_delete")
 def vector_store_delete(ids: List[str], config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
     """
@@ -255,7 +271,6 @@ def vector_store_delete(ids: List[str], config: RunnableConfig, store: Annotated
             "search_results": []
         }
     }
-
 
 @tool("vector_store_stats")
 def vector_store_stats(config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):

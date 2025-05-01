@@ -33,7 +33,7 @@ class DataCollectionAgent:
         # Direct access to config if not graph invoked, otherwise use graph config via configurable
         cfg = config.get('configurable', config) 
         
-        location = cfg.get('location', '')
+        location = cfg.get('base_location', '')
         search_limit = cfg.get('search_limit', 0)
         number_of_results = cfg.get('number_of_results', 0)
 
@@ -57,11 +57,14 @@ class DataCollectionAgent:
                         web_search_count += 1
 
         system_prompt = self.get_system_prompt(
-            prmt.data_collection_system_prompt, config, web_search_count)
+            self.data_collection_prompt, config, web_search_count)
         
         if web_search_count >= search_limit:
             system_prompt = system_prompt + \
                 "\n\nMaximum search rounds reached. Stop using search tools, save results and summarize."
+            
+            if web_search_count >= search_limit*2:
+                system_prompt = "Maximum search rounds reached. Stop using search tools, save results and summarize."
 
         msg_history = [
             SystemMessage(content=system_prompt)
