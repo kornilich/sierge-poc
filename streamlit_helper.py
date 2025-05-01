@@ -1,8 +1,11 @@
 from dotenv import load_dotenv
 import pandas as pd
+import requests
 import streamlit as st
 import inspect
 import os
+import pytz
+from dateutil import parser
 from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ctx
 from streamlit.external.langchain import StreamlitCallbackHandler
@@ -50,19 +53,16 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             setattr(st_cb, method_name, add_streamlit_context(method_func))
     return st_cb
 
-def get_location_from_string(zip_code):
+def get_location_from_string(geo_location):
     """Get location details from Google Maps API using zip code."""
-    if not zip_code:
+    if not geo_location:
         return None
         
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-    if not api_key:
-        st.error("Google Maps API key not found in environment variables")
-        return None
         
     try:
         gmaps = googlemaps.Client(key=api_key)
-        result = gmaps.geocode(zip_code)
+        result = gmaps.geocode(geo_location)
         
         if result:
             location = result[0]['geometry']['location']
@@ -78,6 +78,39 @@ def get_location_from_string(zip_code):
             return None
     except Exception as e:
         st.error(f"Error fetching location data: {str(e)}")
+        return None
+
+def get_weather_data(latitude, longitude):
+    """Get current weather data from Google Weather API using coordinates."""
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+        
+    try:
+        url = f"https://weather.googleapis.com/v1/currentConditions:lookup?key={api_key}&location.latitude={latitude}&location.longitude={longitude}&unitsSystem=IMPERIAL"
+        
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        
+        weather_data = response.json()
+        
+        if weather_data:
+            return {
+                "current_time": weather_data['currentTime'],
+                "time_zone": weather_data['timeZone']['id'],
+                "temperature": weather_data['temperature']['degrees'],
+                "unit": weather_data['temperature']['unit'],
+                "condition": weather_data['weatherCondition']['description']['text'],
+                "icon_url": weather_data['weatherCondition']['iconBaseUri'],
+                "humidity": weather_data['relativeHumidity'],
+                "wind_speed": weather_data['wind']['speed']['value'],
+                "wind_direction": weather_data['wind']['direction']['degrees'],
+                "feels_like": weather_data['feelsLikeTemperature']['degrees'],
+                "pressure": weather_data['airPressure']['meanSeaLevelMillibars'],
+            }
+        else:
+            st.error("No weather data found")
+            return None
+    except Exception as e:
+        st.error(f"Error fetching weather data: {str(e)}")
         return None
 
 def streamlit_settings(chat_mode_list, current_chat_mode=None):
@@ -204,15 +237,44 @@ def streamlit_prepare_execution(settings, config, agent, query, mode):
                 
     geo_location = settings['geo_location']
 
-    col1, col2 = st.columns([2, 1])
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.map(pd.DataFrame({
             'lat': [geo_location['lat']],
             'lon': [geo_location['lon']]
         }), height=300)
-    with col2:
-        st.info(f"📍 {geo_location['formatted_address']}")
-        st.info(f"{geo_location['lat']}, {geo_location['lon']}")
+        
+    weather_data = get_weather_data(
+        geo_location['lat'], geo_location['lon'])
+    
+    if weather_data:
+        with col2:
+            st.subheader("Time and Location")
+            
+            dt = parser.isoparse(weather_data['current_time'])
+            dt = dt.astimezone(pytz.timezone(weather_data['time_zone']))
+            
+            st.write(f"{dt.strftime('%A, %B %d, %Y at %H:%M')}")
+            st.write(f"Time zone: {weather_data['time_zone']}")
+            st.info(
+                f"📍{geo_location['formatted_address']}\n\n{geo_location['lat']}, {geo_location['lon']}")
+        with col3:        
+            st.subheader("Current Weather")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric(
+                    label="Temperature",
+                    value=f"{weather_data['temperature']}° {weather_data['unit'][0]}",
+                    delta=None
+                )
+                st.write(f"Feels like: {weather_data['feels_like']}° {weather_data['unit'][0]}")
+            with col2:
+                st.write(f"Humidity: {weather_data['humidity']}%")
+                st.write(f"Pressure: {weather_data['pressure']} hPa")
+                st.write(f"Wind: {weather_data['wind_speed']} m/s")
+                if weather_data['wind_direction'] != 'N/A':
+                    st.write(f"Wind Direction: {weather_data['wind_direction']}°")
+            st.write(f"Condition: {weather_data['condition'].title()}")
 
     with st.chat_message("human"):
         with st.expander("Human prompt", expanded=False):
