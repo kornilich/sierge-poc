@@ -4,7 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import create_react_agent
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from agents.vector_database import VectorDatabase
 import agents.tools as tools_set
 import agents.prompts as prmt
@@ -25,7 +25,8 @@ chat_mode_list = [COLLECTION_MODE, DISCOVERY_MODE, ITINERARY_MODE]
 
 # Initialize session state
 if "memory" not in st.session_state:
-    st.session_state.memory = MemorySaver()
+    st.session_state.memory = InMemorySaver()
+
 
 # HACK: Keep this to preserve var in runnable config, otherwise it will be removed
 affected_records = ["Blank"]
@@ -79,18 +80,19 @@ if chat_mode == COLLECTION_MODE:
                                     "Instructions usage:\n\n **Common** - used for all AI LLM calls. Addtionally to that **Data collection** - used for data collection, **Summarize** - used for summarization", hide_diagram)                
 elif chat_mode == DISCOVERY_MODE:
     model = ChatOpenAI(model="gpt-4o", temperature=0)
-    tools = [tools_set.vector_store_search, tools_set.vector_store_by_id,
-             tools_set.vector_store_delete, tools_set.vector_store_stats]
+    tools = [tools_set.vector_store_search, tools_set.vector_store_scroll, tools_set.vector_store_by_id,
+             tools_set.vector_store_delete, tools_set.vector_store_metrics]
 
-    # memory = st.session_state.memory
+    memory = st.session_state.memory
     agent = create_react_agent(name="Discovery",
-        model=model, tools=tools, store=vector_store)
+        model=model, tools=tools, store=vector_store, checkpointer=memory)
 
     chat_input = st.chat_input("Type query to search vector store...")
     if chat_input:
         config = RunnableConfig({
             "base_location": settings["base_location"],
             "exact_location": settings["exact_location"],
+            "search_radius": settings["search_radius"],
             "thread_id": "1",
             "affected_records": affected_records,
             "callbacks": [get_streamlit_cb(st.empty())],
@@ -101,13 +103,13 @@ elif chat_mode == DISCOVERY_MODE:
         result = agent.invoke(input={"messages": messages}, config=config)
 
         streamlit_report_execution(result, tools)
-        streamlit_display_storage(vector_store, affected_records, group_by="new")
+        streamlit_display_storage(vector_store, affected_records)
     else:
-        streamlit_show_home(agent, tools, "Discovery mode", "pinecone-logo.png",
+        streamlit_show_home(agent, tools, "Discovery mode", "qdrant-logo.png",
                                     "Query the cached database (vector store) for existing information")
 else: # Itinerary mode
     model = ChatOpenAI(model="gpt-4o", temperature=0)
-    tools = [tools_set.vector_store_search, tools_set.vector_store_stats]
+    tools = [tools_set.vector_store_search, tools_set.vector_store_metrics]
 
     # memory = st.session_state.memory
     agent = create_react_agent(name="Itinerary",

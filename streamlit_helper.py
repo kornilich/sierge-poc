@@ -95,6 +95,7 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
     itinerary_instructions = ""
     search_limit = 2
     number_of_results = 5
+    search_radius = 0
 
     with st.sidebar:
         chat_mode = st.segmented_control(
@@ -134,13 +135,19 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
                     'lon': location_details['longitude'],
                     'formatted_address': location_details['formatted_address']
                 }
+                
+            if chat_mode != COLLECTION_MODE:
+                search_radius = st.slider(
+                        "Search radius (meters)", min_value=0, max_value=20000, value=5000)
             
             if chat_mode == COLLECTION_MODE:
                 search_limit = st.slider(
                     "Search limit", min_value=0, max_value=20, value=1)
                 number_of_results = st.slider(
                     "Number of results", min_value=5, max_value=20, value=5)
+                
             model = st.selectbox("Model", ("gpt-4o-mini"))
+            
             if chat_mode == COLLECTION_MODE:
                 st.selectbox("Web search", ("serpapi"))
 
@@ -153,6 +160,7 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
         "exact_location": exact_location,
         "search_limit": search_limit,
         "number_of_results": number_of_results,
+        "search_radius": search_radius,
         "chat_mode": chat_mode
     }
 
@@ -293,7 +301,12 @@ def streamlit_report_execution(result, tools):
         elif isinstance(msg, ToolMessage):
             if msg.name in [tool.name for tool in tools]:
                 with st.chat_message("Search results role", avatar=":material/manage_search:"):
-                    json_content = json.loads(msg.content)
+                    try:
+                        json_content = json.loads(msg.content)
+                    except json.JSONDecodeError:
+                        st.write(msg.name)
+                        st.error(f"Error parsing tool message: {msg.content}")
+                        continue
                     if msg.name != "save_results":
                         for search_type, results in json_content.items():
                             st.markdown(
@@ -313,12 +326,12 @@ def streamlit_report_execution(result, tools):
         else:
             st.write(msg)
 
-def streamlit_display_storage(storage, data_ids, group_by="data_source"):
+def streamlit_display_storage(storage, data_ids, group_by=None):
     # Display stored search results
-    st.subheader(":gray[Collected data]")
+    st.subheader(":gray[Affected data]")
 
-    if not data_ids:
-        st.write("No data collected")
+    if len(data_ids) < 2: # First record always "Blank"
+        st.info("No data available")
         return
 
     activities = storage.get_by_ids(data_ids)
@@ -336,6 +349,13 @@ def streamlit_display_storage(storage, data_ids, group_by="data_source"):
         cols = [c for c in cols if c not in ['full_address', 'coordinates']]
         # Insert them after location
         cols[loc_idx+1:loc_idx+1] = ['full_address', 'coordinates']
+    
+    # Remove columns where all values are None or 'N/A'
+    df = df.replace('N/A', None)
+    empty_cols = [col for col in cols if df[col].isna().all()]
+    if empty_cols:
+        st.info("These columns have no data: " + ", ".join(empty_cols))
+    cols = [col for col in cols if not df[col].isna().all()]
 
     if len(cols) < 2:
         st.error("Not enough columns to display data")
@@ -343,13 +363,12 @@ def streamlit_display_storage(storage, data_ids, group_by="data_source"):
 
     df = df[cols]
 
-    # Convert timestamp fields to datetime
-    df['created'] = pd.to_datetime(df['created_at'], unit='s')
-    df['updated'] = pd.to_datetime(df['updated_at'], unit='s')
+    # Convert timestamp fields to datetime using .loc
+    df.loc[:, 'created'] = pd.to_datetime(df['created_at'], unit='s')
+    df.loc[:, 'updated'] = pd.to_datetime(df['updated_at'], unit='s')
 
-    # Add 'new' column based on created_at and updated_at comparison
-    df['new'] = (df['created_at'] == df['updated_at']
-                 ).map({True: 'yes', False: 'no'})
+    # Add 'new' column based on created_at and updated_at comparison using .loc
+    df.loc[:, 'new'] = (df['created_at'] == df['updated_at']).map({True: 'yes', False: 'no'})
     # Move 'new' column to first position
     cols = ['new'] + [col for col in df.columns if col != 'new']
     df = df[cols]
@@ -357,17 +376,22 @@ def streamlit_display_storage(storage, data_ids, group_by="data_source"):
     # Remove timestamp columns
     df = df.drop(['created_at', 'updated_at'], axis=1)
 
+    if len(df) == 0:
+        st.info("No data collected")
+        return
+    
     # Group by source and display in expandable sections
-    if len(df) > 0 and group_by in df.columns:
+    if group_by in df.columns:
         for source in df[group_by].unique():
-            source_df = df[df[group_by] == source]
-            with st.expander(f"{group_by}: {source}"):
-                st.dataframe(source_df.drop(group_by, axis=1),
-                             use_container_width=True)
-    else:
+                source_df = df[df[group_by] == source]
+                with st.expander(f"{group_by}: {source}"):
+                    st.dataframe(source_df.drop(group_by, axis=1),
+                                use_container_width=True)
+        return
+    elif group_by:
         st.error(f"Structure issue: no {group_by} column found")
-        st.dataframe(df, use_container_width=True)
-
+    
+    st.dataframe(df, use_container_width=True)
 
 def load_environment():
     load_dotenv()

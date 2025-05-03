@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime
 import uuid
@@ -35,12 +36,29 @@ class VectorDatabase:
                 field_name="name",
                 field_schema="keyword",
             )
+        
+        if "coordinates" not in existing_indices:
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="coordinates",
+                field_schema="geo",
+            )
                 
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-3-small",
             openai_api_key=os.environ["OPENAI_API_KEY"]
         )
-        
+    
+    def safe_point_to_activity(self, point: models.PointStruct) -> ActivityDetails:
+        activity = ActivityDetails()
+        activity.id = point.id
+        for key, value in point.payload.items():
+            try:
+                setattr(activity, key, value)
+            except AttributeError:
+                logging.warning(f"Skipping attribute {key} for activity {point.id} (safe_point_to_activity)")
+                
+        return activity
     
     def save_activities(self, activities: list[ActivityDetails]):
         for activity in activities:
@@ -97,23 +115,44 @@ class VectorDatabase:
             points=points
         )
     
-    def stats(self):
-        collection_info = self.client.get_collection(os.environ["QDRANT_COLLECTION"])
-        return {
-            "vectors_count": collection_info.vectors_count,
-            "points_count": collection_info.points_count,
-            "segments_count": collection_info.segments_count
-        }
+    def get_metrics(self):
+        collection = self.client.get_collection(self.collection_name)
+        return collection.model_dump()
         
-    def similarity_search(self, query: str, k: int = 4):
-        results = self.vector_store.similarity_search(query, k=k)
+    def similarity_search(self, query: str, limit: int = 5, geo_filter: dict = None):
+        if geo_filter is None:
+            points = self.client.search(
+                collection_name=self.collection_name,
+                query_vector=self.embeddings.embed_query(query),
+                limit=limit,
+            )
+        else:
+            points = self.client.search(
+                collection_name=self.collection_name,
+                query_vector=self.embeddings.embed_query(query),
+                limit=limit,
+                query_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key="coordinates",
+                            geo_radius=models.GeoRadius(
+                                center=models.GeoPoint(
+                                    lat=geo_filter["lat"],
+                                    lon=geo_filter["lon"],
+                                ),
+                                radius=geo_filter["radius"],
+                            ),
+                        )
+                    ]
+                ),
+            )
         
         activities = []
-        for doc in results:
-            activity = ActivityDetails(**doc.metadata)
-            activity.id = doc.id
+        for point in points:
+            activity = self.safe_point_to_activity(point)
+            activity.similarity_score = point.score
             activities.append(activity)
-        
+
         return activities
     
     def get_by_ids(self, ids: list[str]):
@@ -126,21 +165,33 @@ class VectorDatabase:
         
         activities = []
         for point in points:
-            activity = ActivityDetails(**point.payload)
-            activity.id = point.id
+            activity = self.safe_point_to_activity(point)
             activities.append(activity)
             
         return activities
             
     def delete_by_ids(self, ids: list[str]):
         self.client.delete(
-            collection_name=os.environ["QDRANT_COLLECTION"],
+            collection_name=self.collection_name,
             points_selector=models.PointIdsList(
                 points=ids
             )
         )
     
-    
+    def scroll_collection(self, offset: str = None, limit: int = 10):
+        results = self.client.scroll(
+            collection_name=self.collection_name,
+            offset=offset,
+            limit=limit
+        )
+        
+        activities = []
+        for point in results[0]:
+            activity = self.safe_point_to_activity(point)
+            activities.append(activity)
+
+        return activities
+
     
     
     

@@ -190,9 +190,9 @@ def add_full_address(activities: List[ActivityDetails], location_bias_lat: float
                     continue
                 
                 activity.full_address = address_details["formatted_address"]
-                activity.coordinates = f"{address_details['latitude']},{address_details['longitude']}"
-        
-        
+                activity.coordinates = {
+                    "lat": address_details['latitude'], "lon": address_details['longitude']}
+         
 @tool("save_results")
 def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
     """
@@ -224,30 +224,71 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
     }
     
 @tool("vector_store_search")
-def vector_store_search(query: str, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()], k: int = 4):
+def vector_store_search(query: str, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()], limit: int = 5):
     """
         Search and retrieve data from vector store
         Parameters:
             query: query to search for
-            k: number of results to return
+            limit: number of results to return
     """
     
     cfg = config.get("configurable", {})
     
-    activities = store.similarity_search(query, k)
+    if cfg["search_radius"] > 0:
+        geo_filter = {
+            "lat": cfg["exact_location"]["lat"],
+            "lon": cfg["exact_location"]["lon"],
+            "radius": cfg["search_radius"]
+        }
+        activities = store.similarity_search(query, limit, geo_filter)
+    else:    
+        activities = store.similarity_search(query, limit)
+        
     
     if "affected_records" in cfg:
         cfg["affected_records"].extend([activity.id for activity in activities])
     
     return {
         "similarity_search": {
-            "data_source": "pinecone",
+            "data_source": "qdrant",
             "search_type": "vector_store",
-            "search_url": "https://www.pinecone.io",
+            "search_url": "https://qdrant.io",
             "search_query": query,
             "search_results": [activity.model_dump() for activity in activities]
         }
     }
+
+
+@tool("vector_store_scroll")
+def vector_store_scroll(config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()], offset: str = None, limit: int = 10):
+    """
+        Returns all records(points) in a page-by-page manner. 
+        All resulting points are sorted by id. 
+        To query the next page specify the last id in the offset field. 
+
+        Parameters:
+            offset: id of the last record to start from
+            limit: number of results to return
+    """
+
+    cfg = config.get("configurable", {})
+
+    activities = store.scroll_collection(offset, limit)
+
+    if "affected_records" in cfg:
+        cfg["affected_records"].extend(
+            [activity.id for activity in activities])
+
+    return {
+        "database_scroll": {
+            "data_source": "qdrant",
+            "search_type": "vector_store",
+            "search_url": "https://qdrant.io",
+            "search_query": f"Scroll from {offset}",
+            "search_results": [activity.model_dump() for activity in activities]
+        }
+    }
+
 
 @tool("vector_store_by_id")
 def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
@@ -265,14 +306,32 @@ def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[
 
     return {
         "vector_store_by_id": {
-            "data_source": "pinecone",
+            "data_source": "qdrant",
             "search_type": "vector_store",
-            "search_url": "https://www.pinecone.io",
+            "search_url": "https://qdrant.io",
             "search_query": str(ids),
             "search_results": [activity.model_dump() for activity in activities]
         }
     }
     
+@tool("vector_store_metrics")
+def vector_store_metrics(config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
+    """
+        Get metrics from vector store
+    """
+
+    metrics = store.get_metrics()
+
+    return {
+        "vector_store_metrics": {
+            "data_source": "qdrant",
+            "search_type": "vector_store",
+            "search_url": "https://qdrant.io",
+            "search_query": "Store metrics",
+            "search_results": [metrics]
+        }
+    }
+
 @tool("vector_store_delete")
 def vector_store_delete(ids: List[str], config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
     """
@@ -285,28 +344,10 @@ def vector_store_delete(ids: List[str], config: RunnableConfig, store: Annotated
 
     return {
         "vector_store_by_id": {
-            "data_source": "pinecone",
+            "data_source": "qdrant",
             "search_type": "vector_store",
-            "search_url": "https://www.pinecone.io",
+            "search_url": "https://qdrant.io",
             "search_query": str(ids),
             "search_results": []
-        }
-    }
-
-@tool("vector_store_stats")
-def vector_store_stats(config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
-    """
-        Get stats from vector store
-    """
-
-    stats = store.stats()
-
-    return {
-        "vector_store_stats": {
-            "data_source": "pinecone",
-            "search_type": "vector_store",
-            "search_url": "https://www.pinecone.io",
-            "search_query": "Store stats",
-            "search_results": [stats]
         }
     }

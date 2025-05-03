@@ -18,10 +18,11 @@ If certain fields lack sufficient data or are unavailable, they will be assigned
         default=None, description="For internal use only. Timestamp of when the activity was updated.")
     full_address: Optional[str] = Field(
         default=None, description="For internal use only.")
-    coordinates: Optional[str] = Field(
+    coordinates: Optional[dict] = Field(
         default=None, description="For internal use only.")
+    similarity_score: Optional[float] = Field(
+        default=None, description="For internal use only. Similarity score of the activity to the query.")
 
-# These fields are populated by the model
     data_source: Optional[str] = Field(
         default="Model", description="Source of the information. Can be 'Model' or tool name.")
     category: Optional[str] = Field(default="Other")

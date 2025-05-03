@@ -67,7 +67,7 @@ Operational Constraints:
 discovery_system_prompt = """
 You are a helpful assistant that search the vector store for information
 
-Show results in markdown table. Do not include id field.
+Show results in markdown table. Do not include id field, include similarity_score field.
 
 Explain tools choice.
 Report how many results were requested and how many were returned.
