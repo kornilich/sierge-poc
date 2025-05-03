@@ -15,3 +15,5 @@ langchain-pinecone
 pygraphviz
 
 googlemaps
+qdrant-client
+langchain-qdrant

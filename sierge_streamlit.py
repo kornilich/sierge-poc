@@ -27,7 +27,6 @@ chat_mode_list = [COLLECTION_MODE, DISCOVERY_MODE, ITINERARY_MODE]
 if "memory" not in st.session_state:
     st.session_state.memory = MemorySaver()
 
-vector_store = VectorDatabase()
 # HACK: Keep this to preserve var in runnable config, otherwise it will be removed
 affected_records = ["Blank"]
 
@@ -35,6 +34,8 @@ load_environment()
 
 settings = streamlit_settings(chat_mode_list, COLLECTION_MODE)
 chat_mode = settings["chat_mode"]
+
+vector_store = VectorDatabase(collection_name=settings["base_location"])
 
 if chat_mode == COLLECTION_MODE:
     config = RunnableConfig({
@@ -46,8 +47,10 @@ if chat_mode == COLLECTION_MODE:
         "callbacks": [get_streamlit_cb(st.empty())],
     })
 
-    tools = [tools_set.save_results, tools_set.google_organic_search,
-             tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
+    # tools = [tools_set.save_results, tools_set.google_organic_search,
+    #          tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
+    tools = [tools_set.save_results]
+
     agent = DataCollectionAgent(vector_store, tools, settings)
     agent.setup()
 
@@ -69,7 +72,7 @@ if chat_mode == COLLECTION_MODE:
         streamlit_report_execution(result, tools)
 
         streamlit_display_storage(
-            vector_store, affected_records, group_by="data_source", namespace=settings["base_location"])
+            vector_store, affected_records, group_by="data_source")
     else:
         hide_diagram = True if len(tools) > 3 else False
         streamlit_show_home(agent.runnable, tools, "Data collection mode", "data-mining.png",
@@ -98,7 +101,7 @@ elif chat_mode == DISCOVERY_MODE:
         result = agent.invoke(input={"messages": messages}, config=config)
 
         streamlit_report_execution(result, tools)
-        streamlit_display_storage(vector_store, affected_records, group_by="new", namespace=settings["base_location"])
+        streamlit_display_storage(vector_store, affected_records, group_by="new")
     else:
         streamlit_show_home(agent, tools, "Discovery mode", "pinecone-logo.png",
                                     "Query the cached database (vector store) for existing information")

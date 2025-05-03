@@ -12,6 +12,7 @@ from streamlit.external.langchain import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, ToolMessage
 from typing import TypeVar, Callable
+from agents.geocoding import get_location_from_string
 import agents.prompts as prmt
 import json
 import googlemaps
@@ -52,33 +53,6 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
         if method_name.startswith('on_'):
             setattr(st_cb, method_name, add_streamlit_context(method_func))
     return st_cb
-
-def get_location_from_string(location_str):
-    """Get location details from Google Maps API using zip code."""
-    if not location_str:
-        return None
-        
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-        
-    try:
-        gmaps = googlemaps.Client(key=api_key)
-        result = gmaps.geocode(location_str)
-        
-        if result:
-            location = result[0]['geometry']['location']
-            formatted_address = result[0]['formatted_address']
-            
-            return {
-                "formatted_address": formatted_address,
-                "latitude": location['lat'],
-                "longitude": location['lng']
-            }
-        else:
-            st.error("No location found")
-            return None
-    except Exception as e:
-        st.error(f"Error fetching location data: {str(e)}")
-        return None
 
 def get_weather_data(latitude, longitude):
     """Get current weather data from Google Weather API using coordinates."""
@@ -339,7 +313,7 @@ def streamlit_report_execution(result, tools):
         else:
             st.write(msg)
 
-def streamlit_display_storage(storage, data_ids, group_by="data_source", namespace=""):
+def streamlit_display_storage(storage, data_ids, group_by="data_source"):
     # Display stored search results
     st.subheader(":gray[Collected data]")
 
@@ -347,13 +321,21 @@ def streamlit_display_storage(storage, data_ids, group_by="data_source", namespa
         st.write("No data collected")
         return
 
-    activities = storage.get_by_ids(data_ids, namespace)
+    activities = storage.get_by_ids(data_ids)
 
     # Convert activities to DataFrame
     df = pd.DataFrame([activity.model_dump() for activity in activities])
 
     # Move id column to the end if it exists
     cols = [col for col in df.columns if col != 'id'] + ['id']
+    
+    # Reorder columns to put full_address and coordinates after location
+    if 'location' in cols:
+        loc_idx = cols.index('location')
+        # Remove these columns from their current position if they exist
+        cols = [c for c in cols if c not in ['full_address', 'coordinates']]
+        # Insert them after location
+        cols[loc_idx+1:loc_idx+1] = ['full_address', 'coordinates']
 
     if len(cols) < 2:
         st.error("Not enough columns to display data")
@@ -397,8 +379,10 @@ def load_environment():
     os.environ["LANGSMITH_ENDPOINT"] = st.secrets["LANGSMITH_ENDPOINT"]
     os.environ["LANGSMITH_API_KEY"] = st.secrets["LANGSMITH_API_KEY"]
     os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
-    os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
-    os.environ["PINECONE_INDEX"] = st.secrets["PINECONE_INDEX"]
+    # os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
+    # os.environ["PINECONE_INDEX"] = st.secrets["PINECONE_INDEX"]
+    os.environ["QDRANT_API_KEY"] = st.secrets["QDRANT_API_KEY"]
+    os.environ["QDRANT_URL"] = st.secrets["QDRANT_URL"]
     os.environ["GOOGLE_MAPS_API_KEY"] = st.secrets["GOOGLE_MAPS_API_KEY"]
 
     return

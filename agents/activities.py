@@ -9,15 +9,21 @@ class ActivityDetails(BaseModel):
     """Represents detailed information about an activity or event.
 If certain fields lack sufficient data or are unavailable, they will be assigned the value `N/A`    
     """
-
-    data_source: Optional[str] = Field(
-        default="Model", description="Source of the information. Can be 'Model' or tool name.")
+# Internal fields
     id: Optional[str] = Field(
         default=None, description="For internal use only. Unique identifier for the activity.")
     created_at: Optional[int] = Field(
         default=None, description="For internal use only. Timestamp of when the activity was created.")
     updated_at: Optional[int] = Field(
         default=None, description="For internal use only. Timestamp of when the activity was updated.")
+    full_address: Optional[str] = Field(
+        default=None, description="For internal use only.")
+    coordinates: Optional[str] = Field(
+        default=None, description="For internal use only.")
+
+# These fields are populated by the model
+    data_source: Optional[str] = Field(
+        default="Model", description="Source of the information. Can be 'Model' or tool name.")
     category: Optional[str] = Field(default="Other")
     name: Optional[str] = Field(
         default=None, description="Name/Title of the activity (e.g., Event Name, Venue Name, Destination Name).")

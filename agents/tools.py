@@ -1,7 +1,10 @@
 # https://apify.com/apify/website-content-crawler
 
+from difflib import SequenceMatcher
 import json
+import logging
 import os
+import googlemaps
 from serpapi import GoogleSearch
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
@@ -9,8 +12,9 @@ from langgraph.prebuilt import InjectedStore
 from typing import List, Dict, Annotated
 
 
+from agents.geocoding import get_location_from_string, get_place_address
 from agents.vector_database import VectorDatabase
-from agents.activities import ActivitiesList
+from agents.activities import ActivitiesList, ActivityDetails
 from uule_convertor import UuleConverter
 
 @tool("google_organic_search")
@@ -172,7 +176,23 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
         }
         
     return filtered_results
-
+    
+def add_full_address(activities: List[ActivityDetails], location_bias_lat: float, location_bias_lon: float):
+    for activity in activities:
+        if not activity.full_address:
+            address_details = get_place_address(
+                f"{activity.name}, {activity.location}", location_bias_lat, location_bias_lon)
+            if address_details:
+                similarity = SequenceMatcher(None, activity.name, address_details["name"]).ratio()
+                if similarity < 0.8:
+                    logging.warning(
+                        f"Activity name {activity.name} doesn't match address name {address_details['name']}. Skipping... (add_full_address)")
+                    continue
+                
+                activity.full_address = address_details["formatted_address"]
+                activity.coordinates = f"{address_details['latitude']},{address_details['longitude']}"
+        
+        
 @tool("save_results")
 def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
     """
@@ -185,10 +205,13 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
             data_source: "data_source" of the result
             records_affected: number of records saved
     """
-    cfg = config.get("configurable", {})
-    namespace = cfg.get("base_location", "")
+    cfg = config.get("configurable", {})    
+    exact_location = cfg["exact_location"]
+    
+    add_full_address(
+        data.activities, exact_location["lat"], exact_location["lon"])
 
-    store.add_documents(activities=data.activities, namespace=namespace)
+    store.save_activities(activities=data.activities)
     
     if "affected_records" in cfg:
         cfg["affected_records"].extend([activity.id for activity in data.activities])
@@ -210,9 +233,8 @@ def vector_store_search(query: str, config: RunnableConfig, store: Annotated[Vec
     """
     
     cfg = config.get("configurable", {})
-    namespace = cfg.get("base_location", "")
     
-    activities = store.similarity_search(query, k, namespace)
+    activities = store.similarity_search(query, k)
     
     if "affected_records" in cfg:
         cfg["affected_records"].extend([activity.id for activity in activities])
@@ -235,11 +257,10 @@ def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[
             ids: list of ids to search for
     """
     cfg = config.get("configurable", {})
-    namespace = cfg.get("base_location", "")
 
-    activities = store.get_by_ids(ids, namespace)
+    activities = store.get_by_ids(ids)
 
-    if "affected_records" in cfg:
+    if "affected_records" in cfg:        
         cfg["affected_records"].extend([document.id for document in activities])
 
     return {
