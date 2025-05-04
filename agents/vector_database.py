@@ -5,7 +5,7 @@ import uuid
 from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
 from qdrant_client import models
-from qdrant_client.models import Filter, FieldCondition, MatchValue
+from qdrant_client.models import Filter, FieldCondition
 
 from agents.activities import ActivityDetails
 
@@ -30,13 +30,7 @@ class VectorDatabase:
         # Create indecies if not exist
         collection = self.client.get_collection(self.collection_name)
         existing_indices = collection.payload_schema
-        if "name" not in existing_indices:
-            self.client.create_payload_index(
-                collection_name=self.collection_name,
-                field_name="name",
-                field_schema="keyword",
-            )
-        
+
         if "coordinates" not in existing_indices:
             self.client.create_payload_index(
                 collection_name=self.collection_name,
@@ -61,54 +55,41 @@ class VectorDatabase:
         return activity
     
     def save_activities(self, activities: list[ActivityDetails]):
+        # d27da075-a9e1-583b-9db1-50bd363f8d7c
+        # use organic search for virtual reality venues
+        
         for activity in activities:
-            # Query for existing documents with same name and location
+            # Query for existing documents with same name and full_address
             # TODO: Consider using local embeddings like FastEmbed instead of OpenAI API calls
-            existing_point = self.client.search(
-                collection_name=self.collection_name,
-                query_vector=self.embeddings.embed_query(
-                    "name: " + activity.name + " location: " + activity.location),
-                query_filter=Filter(
-                    must=[
-                        FieldCondition(
-                            key="name",
-                            match=MatchValue(value=activity.name)
-                        )
-                    ]
-                ),
-                limit=1,
-            )
+            
+            # Generate ID based on name and full_address
+            activity_uuid = uuid.uuid5(
+                uuid.NAMESPACE_URL, (activity.name + activity.full_address).lower())
+                        
+            # TODO: Can be optimized by calling once before the loop
+            existing_activities = self.get_by_ids([activity_uuid])
             
             current_timestamp = int(datetime.now().timestamp())
             activity.updated_at = current_timestamp
             activity.created_at = current_timestamp
 
-            if existing_point:
+            if existing_activities:
                 # Id and created_at should remain the same
-                activity.id = existing_point[0].id
-                if "created_at" in existing_point[0].payload:
-                    activity.created_at = existing_point[0].payload["created_at"]
+                activity.id = existing_activities[0].id
+                activity.created_at = existing_activities[0].created_at
             else:
-                if not activity.id:
-                    activity.id = str(uuid.uuid4())
+                activity.id = activity_uuid
 
-        points = [
-            models.PointStruct(
-                id=activity.id,
-                vector=self.embeddings.embed_query(str(activity.model_dump())),
-                payload={
-                    "name": activity.name,
-                    "location": activity.location,
-                    "full_address": activity.full_address,
-                    "coordinates": activity.coordinates,
-                    "category": activity.category,
-                    "data_source": activity.data_source,
-                    "created_at": activity.created_at,
-                    "updated_at": activity.updated_at,
-                }
+        points = []
+        for activity in activities:
+            activity_dump = activity.model_dump()
+            points.append(
+                models.PointStruct(
+                    id=str(activity.id),
+                    vector=self.embeddings.embed_query(str(activity_dump)),
+                    payload=activity_dump
+                )
             )
-            for activity in activities
-        ]
         
         try:
             self.client.upsert(
@@ -165,7 +146,7 @@ class VectorDatabase:
         cleared_ids = [id for id in ids if id != "Blank"]
         points = self.client.retrieve(
             collection_name=self.collection_name,
-            ids=cleared_ids
+            ids=[str(id) for id in cleared_ids]
         )
         
         activities = []

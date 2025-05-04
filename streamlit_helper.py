@@ -130,11 +130,11 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
             
             location_details = get_location_from_string(area_location)
             if location_details:
-                st.info(f"📍 {location_details['formatted_address']}")
+                st.info(f"📍 {location_details.formatted_address}")
                 exact_location = {
-                    'lat': location_details['latitude'],
-                    'lon': location_details['longitude'],
-                    'formatted_address': location_details['formatted_address']
+                    'lat': location_details.latitude,
+                    'lon': location_details.longitude,
+                    'formatted_address': location_details.formatted_address
                 }
                 
             if chat_mode != COLLECTION_MODE:

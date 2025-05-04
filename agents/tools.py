@@ -210,8 +210,10 @@ def add_full_address(activities: List[ActivityDetails], base_location: str, loca
                                     
             if address_details:
                 if not address_normalized:
-                    address_details = get_validated_address(
+                    validated_address_details = get_validated_address(
                         address_details.formatted_address, base_location)
+                    if validated_address_details:
+                        address_details = validated_address_details
 
                 activity.full_address = address_details.formatted_address
                 activity.coordinates = {

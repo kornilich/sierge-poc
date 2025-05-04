@@ -36,7 +36,7 @@ affected_records = ["Blank"]
 
 load_environment()
 
-settings = streamlit_settings(chat_mode_list, ITINERARY_MODE)
+settings = streamlit_settings(chat_mode_list, COLLECTION_MODE)
 chat_mode = settings["chat_mode"]
 
 vector_store = VectorDatabase(collection_name=settings["base_location"])
@@ -53,7 +53,7 @@ if chat_mode == COLLECTION_MODE:
 
     # tools = [tools_set.save_results, tools_set.google_organic_search,
     #          tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
-    tools = [tools_set.save_results, tools_set.google_events_search]
+    tools = [tools_set.save_results, tools_set.google_organic_search]
 
     agent = DataCollectionAgent(vector_store, tools, settings)
     agent.setup()
