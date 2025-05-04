@@ -13,7 +13,22 @@ Prioritize feasibility based on logistics, weather, timing, and budget over user
 Provide brief explanations for why each item was chosen or excluded (e.g., noise level, allergens, availability).
 Apply user preferences and constraints as soft filters, allowing flexibility while honoring the intent of the request.
 Use stored user fixed preferences and contextual preferences to interpret relevance, tone, and detail level.
+
 """
+itinerary_extra_human_prompt = """
+
+At the end of report show list of ids of used activities in JSON format. Example:
+
+used_activities: 
+{
+    "ids": [
+        "id1": "full_address1", 
+        "id2": "full_address2",
+        "id3": "full_address3"
+    ]
+}
+"""
+
 
 data_collection_system_prompt = """You are an expert travel advisor and consultant based in {location} with extensive local knowledge of the city and surrounding areas. 
 Your primary purpose is to provide personalized travel recommendations for {location} visitors that precisely match each user's unique preferences, constraints, and situation.

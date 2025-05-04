@@ -205,18 +205,16 @@ def streamlit_show_home(agent, tools, title, image_name, description, hide_diagr
 
     return
 
-def streamlit_prepare_execution(settings, today, config, agent, query, mode, weather_data=None):
+
+def streamlit_prepare_execution(mode, settings, config, query, system_prompt="", agent=None, today="Date time is not available", weather_data=None):
     with st.chat_message("ai"):
         if mode == COLLECTION_MODE:
             with st.expander("Data collection prompt", expanded=False):
                 st.write(agent.get_system_prompt(
                     settings["data_collection_prompt"], config))
         else:
-            cfg = config.get('configurable', config)
-            base_location = cfg.get('base_location', '')
-
-            with st.expander("Itinerary prompt", expanded=False):
-                st.write(prmt.format_prompt(settings["itinerary_instructions"], location=base_location))
+            with st.expander("System prompt", expanded=False):
+                st.write(system_prompt)
                 
     exact_location = settings['exact_location']
 

@@ -54,10 +54,7 @@ class VectorDatabase:
                 
         return activity
     
-    def save_activities(self, activities: list[ActivityDetails]):
-        # d27da075-a9e1-583b-9db1-50bd363f8d7c
-        # use organic search for virtual reality venues
-        
+    def save_activities(self, activities: list[ActivityDetails]):        
         for activity in activities:
             # Query for existing documents with same name and full_address
             # TODO: Consider using local embeddings like FastEmbed instead of OpenAI API calls

@@ -131,4 +131,4 @@ class DataCollectionAgent:
 
         graph.add_edge(DATA_SOURCE_NODE, COLLECT_DATA_NODE)
 
-        self.runnable = graph.compile(store=self.vector_store)
+        self.runnable = graph.compile(name="Data collection", store=self.vector_store)
