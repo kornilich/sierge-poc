@@ -1,3 +1,5 @@
+from datetime import datetime
+import pytz
 import streamlit as st
 from agents.data_collection_agent import DataCollectionAgent
 from langchain_openai import ChatOpenAI
@@ -5,6 +7,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
+from agents.geocoding import get_datetime_info, get_timezone_from_coordinates, get_validated_address
 from agents.vector_database import VectorDatabase
 import agents.tools as tools_set
 import agents.prompts as prmt
@@ -33,7 +36,7 @@ affected_records = ["Blank"]
 
 load_environment()
 
-settings = streamlit_settings(chat_mode_list, COLLECTION_MODE)
+settings = streamlit_settings(chat_mode_list, ITINERARY_MODE)
 chat_mode = settings["chat_mode"]
 
 vector_store = VectorDatabase(collection_name=settings["base_location"])
@@ -50,7 +53,7 @@ if chat_mode == COLLECTION_MODE:
 
     # tools = [tools_set.save_results, tools_set.google_organic_search,
     #          tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
-    tools = [tools_set.save_results]
+    tools = [tools_set.save_results, tools_set.google_events_search]
 
     agent = DataCollectionAgent(vector_store, tools, settings)
     agent.setup()
@@ -60,7 +63,9 @@ if chat_mode == COLLECTION_MODE:
 
     if chat_input:
         query = f"{settings['user_preferences']} \n\n {chat_input}"
-        streamlit_prepare_execution(settings, config, agent, query, COLLECTION_MODE)
+        datetime_now_info = get_datetime_info(
+            settings["exact_location"]["lat"], settings["exact_location"]["lon"])
+        streamlit_prepare_execution(settings, datetime_now_info, config, agent, query, COLLECTION_MODE)
 
         with st.spinner("Collecting data...", show_time=True):
             messages = [HumanMessage(content=query)]
@@ -118,20 +123,25 @@ else: # Itinerary mode
     chat_input = st.chat_input(
         "Type additonal query here to start itinerary generation...")
     if chat_input:
+        datetime_now_info = get_datetime_info(settings["exact_location"]["lat"], settings["exact_location"]["lon"])
+        
+        weather_data = get_validated_address(settings["exact_location"]["lat"], settings["exact_location"]["lon"])
+        
         config = RunnableConfig({
             "base_location": settings["base_location"],
             "exact_location": settings["exact_location"],
+            "search_radius": settings["search_radius"],
             "thread_id": "1",
             "affected_records": affected_records,
             "callbacks": [get_streamlit_cb(st.empty())],
         })
-        messages = [HumanMessage(content=settings["user_preferences"] + "\n\n" + chat_input)]
-        messages.append(SystemMessage(content=prmt.itinerary_system_prompt))
+        messages = [HumanMessage(content=settings["user_preferences"] + "\n\n" + chat_input + "\n\n" + datetime_now_info)]
+        messages.append(SystemMessage(content=settings["itinerary_instructions"]))
 
         streamlit_prepare_execution(
-            settings, config, agent, messages[0].content, ITINERARY_MODE)
+            settings, datetime_now_info, config, agent, messages[0].content, ITINERARY_MODE, weather_data=weather_data)
         
-        result = agent.invoke(input={"messages": messages}, config=config)
+        # result = agent.invoke(input={"messages": messages}, config=config)
 
         streamlit_report_execution(result, tools)
         streamlit_display_storage(

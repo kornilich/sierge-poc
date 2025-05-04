@@ -12,7 +12,7 @@ from langgraph.prebuilt import InjectedStore
 from typing import List, Dict, Annotated
 
 
-from agents.geocoding import get_location_from_string, get_place_address
+from agents.geocoding import get_location_from_string, get_place_address, get_validated_address
 from agents.vector_database import VectorDatabase
 from agents.activities import ActivitiesList, ActivityDetails
 from uule_convertor import UuleConverter
@@ -177,21 +177,45 @@ def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types
         
     return filtered_results
     
-def add_full_address(activities: List[ActivityDetails], location_bias_lat: float, location_bias_lon: float):
+def add_full_address(activities: List[ActivityDetails], base_location: str, location_bias_lat: float, location_bias_lon: float):
+# Goal find most likely address for activity
+
+# Correct address has priority over Place name 
+#
+# That means if Address exists and Place exists
+# but Place has difference address we will assign
+# this address to place even if it's wrong
+#
+# Using opposite approach fails when activity is not in
+# Google Places database. It uses similarity search and
+# returns random results for places
+#
+# Address considered correct if passes address validation
+# If place search is used, it will be normalized by address validation
+# to reduce dublicates
+    
     for activity in activities:
         if not activity.full_address:
-            address_details = get_place_address(
-                f"{activity.name}, {activity.location}", location_bias_lat, location_bias_lon)
+            address_normalized = False
+            if activity.location:
+                address_details = get_validated_address(activity.location, base_location)
+                if not address_details:
+                    address_details = get_place_address(
+                        f"{activity.name}, {activity.location}", location_bias_lat, location_bias_lon)
+                else:
+                    address_normalized = True
+            else:
+                address_details = get_place_address(
+                    activity.name, location_bias_lat, location_bias_lon)
+                                    
             if address_details:
-                similarity = SequenceMatcher(None, activity.name, address_details["name"]).ratio()
-                if similarity < 0.8:
-                    logging.warning(
-                        f"Activity name {activity.name} doesn't match address name {address_details['name']}. Skipping... (add_full_address)")
-                    continue
-                
-                activity.full_address = address_details["formatted_address"]
+                if not address_normalized:
+                    address_details = get_validated_address(
+                        address_details.formatted_address, base_location)
+
+                activity.full_address = address_details.formatted_address
                 activity.coordinates = {
-                    "lat": address_details['latitude'], "lon": address_details['longitude']}
+                    "lat": address_details.latitude, "lon": address_details.longitude}
          
 @tool("save_results")
 def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):
@@ -209,7 +233,7 @@ def save_results(data: ActivitiesList, config: RunnableConfig, store: Annotated[
     exact_location = cfg["exact_location"]
     
     add_full_address(
-        data.activities, exact_location["lat"], exact_location["lon"])
+        data.activities, cfg["base_location"], exact_location["lat"], exact_location["lon"])
 
     store.save_activities(activities=data.activities)
     
@@ -258,7 +282,6 @@ def vector_store_search(query: str, config: RunnableConfig, store: Annotated[Vec
         }
     }
 
-
 @tool("vector_store_scroll")
 def vector_store_scroll(config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()], offset: str = None, limit: int = 10):
     """
@@ -288,7 +311,6 @@ def vector_store_scroll(config: RunnableConfig, store: Annotated[VectorDatabase,
             "search_results": [activity.model_dump() for activity in activities]
         }
     }
-
 
 @tool("vector_store_by_id")
 def vector_store_by_id(ids: List[str], config: RunnableConfig, store: Annotated[VectorDatabase, InjectedStore()]):

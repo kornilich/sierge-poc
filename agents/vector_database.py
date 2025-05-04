@@ -109,11 +109,16 @@ class VectorDatabase:
             )
             for activity in activities
         ]
-            
-        self.client.upsert(
-            collection_name=self.collection_name,
-            points=points
-        )
+        
+        try:
+            self.client.upsert(
+                collection_name=self.collection_name,
+                points=points
+            )
+        except Exception as e:
+            logging.error(f"Error upserting activities: {e}")
+            raise e
+        
     
     def get_metrics(self):
         collection = self.client.get_collection(self.collection_name)

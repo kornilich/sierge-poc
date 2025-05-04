@@ -1,3 +1,4 @@
+from datetime import datetime
 from dotenv import load_dotenv
 import pandas as pd
 import requests
@@ -54,7 +55,7 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             setattr(st_cb, method_name, add_streamlit_context(method_func))
     return st_cb
 
-def get_weather_data(latitude, longitude):
+def get_weather_today(latitude, longitude):
     """Get current weather data from Google Weather API using coordinates."""
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
         
@@ -138,7 +139,7 @@ def streamlit_settings(chat_mode_list, current_chat_mode=None):
                 
             if chat_mode != COLLECTION_MODE:
                 search_radius = st.slider(
-                        "Search radius (meters)", min_value=0, max_value=20000, value=5000)
+                        "Search radius (meters)", min_value=0, max_value=20000, value=0)
             
             if chat_mode == COLLECTION_MODE:
                 search_limit = st.slider(
@@ -204,7 +205,7 @@ def streamlit_show_home(agent, tools, title, image_name, description, hide_diagr
 
     return
 
-def streamlit_prepare_execution(settings, config, agent, query, mode):    
+def streamlit_prepare_execution(settings, today, config, agent, query, mode, weather_data=None):
     with st.chat_message("ai"):
         if mode == COLLECTION_MODE:
             with st.expander("Data collection prompt", expanded=False):
@@ -219,46 +220,47 @@ def streamlit_prepare_execution(settings, config, agent, query, mode):
                 
     exact_location = settings['exact_location']
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
+    if weather_data:
+        map_col, time_location_col, weather_col = st.columns(3)
+    else:
+        map_col, time_location_col = st.columns([1, 2])
+
+    with map_col:
         st.map(pd.DataFrame({
             'lat': [exact_location['lat']],
             'lon': [exact_location['lon']]
         }), height=300)
+            
+    with time_location_col:
+        st.subheader("Time and Location")
         
-    weather_data = get_weather_data(
-        exact_location['lat'], exact_location['lon'])
-    
-    if weather_data:
-        with col2:
-            st.subheader("Time and Location")
+        st.write(today)
+        st.info(
+            f"📍{exact_location['formatted_address']}\n\n{exact_location['lat']}, {exact_location['lon']}")
+
+    if 'weather_col' in locals():
+        with weather_col:
+            st.subheader("Weather Forecast")
             
-            dt = parser.isoparse(weather_data['current_time'])
-            dt = dt.astimezone(pytz.timezone(weather_data['time_zone']))
-            
-            st.write(f"{dt.strftime('%A, %B %d, %Y at %H:%M')}")
-            st.write(f"Time zone: {weather_data['time_zone']}")
-            st.info(
-                f"📍{exact_location['formatted_address']}\n\n{exact_location['lat']}, {exact_location['lon']}")
-        with col3:        
-            st.subheader("Current Weather")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric(
-                    label="Temperature",
-                    value=f"{weather_data['temperature']}° {weather_data['unit'][0]}",
-                    delta=None
-                )
-                st.write(f"Feels like: {weather_data['feels_like']}° {weather_data['unit'][0]}")
-            if 'icon_url' in weather_data:
-                st.image(f"{weather_data['icon_url']}.png", width=50)
-            with col2:
-                st.write(f"Humidity: {weather_data['humidity']}%")
-                st.write(f"Pressure: {weather_data['pressure']} hPa")
-                st.write(f"Wind: {weather_data['wind_speed']} m/s")
-                if weather_data['wind_direction'] != 'N/A':
-                    st.write(f"Wind Direction: {weather_data['wind_direction']}°")
-            st.write(f"Condition: {weather_data['condition'].title()}")
+            for interval in weather_data["forecastDays"]:
+                daytime_forecast = interval["daytimeForecast"]
+                interval_start = daytime_forecast["interval"]["startTime"]
+                weather_condition_text = daytime_forecast["weatherCondition"]["description"]["text"]
+                weather_condition_icon = daytime_forecast["weatherCondition"]["iconBaseUri"]
+                max_temperature = interval["maxTemperature"]["degrees"]
+                min_temperature = interval["minTemperature"]["degrees"]
+                
+                interval_date = datetime.strptime(interval_start, "%Y-%m-%dT%H:%M:%S%z").strftime("%m/%d")
+                
+                c1, c2 = st.columns([1,4], gap="small")
+                with c1:
+                    st.image(f"{weather_condition_icon}.png",
+                             caption=interval_date, use_container_width=True)
+                with c2:
+                    st.metric(
+                        label=weather_condition_text,
+                        value=f"{max_temperature} / {min_temperature}°F",
+                    )
 
     with st.chat_message("human"):
         with st.expander("Human prompt", expanded=False):
