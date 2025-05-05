@@ -1,21 +1,43 @@
-# https://apify.com/apify/website-content-crawler
-
-from difflib import SequenceMatcher
 import json
-import logging
 import os
-import googlemaps
 from serpapi import GoogleSearch
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import InjectedStore
 from typing import List, Dict, Annotated
 
-
-from agents.geocoding import get_location_from_string, get_place_address, get_validated_address
+from agents.geocoding import get_place_address, get_validated_address
 from agents.vector_database import VectorDatabase
 from agents.activities import ActivitiesList, ActivityDetails
 from uule_convertor import UuleConverter
+
+from langchain_hyperbrowser import HyperbrowserExtractTool
+
+# check this page https://blog.offerpad.com/things-to-do-dallas-tx
+# check this page https://www.visitdallas.com
+@tool("web_page_data_extraction")
+def web_page_data_extraction(url: str):
+    """
+        Extract data from a single web page
+    """
+    results = HyperbrowserExtractTool().run(
+        {
+            "url": url,
+            "schema": ActivitiesList,
+            "session_options": {"session_options": {"use_proxy": True}},
+        }
+    )
+    
+    results_info = {
+        "data_source": "hyperbrowser",
+        "search_type": "extraction",
+        "search_url": url,
+        "search_query": "Extract data from web page",
+        "search_results": results["data"]["activities"]
+    }
+
+    return {"search_type": "web_page_data_extraction",
+            "results": results_info}
 
 @tool("google_organic_search")
 def google_organic_search(query: str, config: RunnableConfig):

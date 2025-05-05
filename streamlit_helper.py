@@ -413,5 +413,5 @@ def load_environment():
     os.environ["QDRANT_API_KEY"] = st.secrets["QDRANT_API_KEY"]
     os.environ["QDRANT_URL"] = st.secrets["QDRANT_URL"]
     os.environ["GOOGLE_MAPS_API_KEY"] = st.secrets["GOOGLE_MAPS_API_KEY"]
-
+    os.environ["HYPERBROWSER_API_KEY"] = st.secrets["HYPERBROWSER_API_KEY"]
     return

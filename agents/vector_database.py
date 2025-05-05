@@ -71,9 +71,16 @@ class VectorDatabase:
             activity.created_at = current_timestamp
 
             if existing_activities:
+                existing_activity = existing_activities[0]
                 # Id and created_at should remain the same
-                activity.id = existing_activities[0].id
-                activity.created_at = existing_activities[0].created_at
+                activity.id = existing_activity.id
+                activity.created_at = existing_activity.created_at                
+                
+                # Copy over any non-null values from existing activity
+                for field in activity.model_dump().keys():
+                    if getattr(activity, field) is None and hasattr(existing_activity, field):
+                        setattr(activity, field, getattr(
+                            existing_activity, field))
             else:
                 activity.id = activity_uuid
 

@@ -16,3 +16,4 @@ pygraphviz
 googlemaps
 qdrant-client
 langchain-qdrant
+langchain-hyperbrowser

@@ -57,10 +57,11 @@ if chat_mode == COLLECTION_MODE:
         "affected_records": affected_records,
         "callbacks": [get_streamlit_cb(st.empty())],
     })
+    
 
-    tools = [tools_set.save_results, tools_set.google_organic_search,
-             tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
-    # tools = [tools_set.save_results, tools_set.yelp_search]
+    # tools = [tools_set.save_results, tools_set.google_organic_search,
+    #          tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search]
+    tools = [tools_set.save_results, tools_set.web_page_data_extraction]
 
     agent = DataCollectionAgent(vector_store, tools, settings)
     agent.setup()
@@ -205,7 +206,7 @@ else: # Itinerary mode
                             
                 col1, col2 = st.columns([2,1])
                 with col1:  
-                    st.map(df, height=300, zoom=10)
+                    st.map(df, height=300)
                 with col2:
                     st.link_button(
                         "Open in Google Maps", f"https://www.google.com/maps/dir/{places_map_param}", type="primary", icon=":material/map:")
