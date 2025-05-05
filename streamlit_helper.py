@@ -205,17 +205,7 @@ def streamlit_show_home(agent, tools, title, image_name, description, hide_diagr
 
     return
 
-
-def streamlit_prepare_execution(mode, settings, config, query, system_prompt="", agent=None, today="Date time is not available", weather_data=None):
-    with st.chat_message("ai"):
-        if mode == COLLECTION_MODE:
-            with st.expander("Data collection prompt", expanded=False):
-                st.write(agent.get_system_prompt(
-                    settings["data_collection_prompt"], config))
-        else:
-            with st.expander("System prompt", expanded=False):
-                st.write(system_prompt)
-                
+def streamlit_prepare_execution(mode, settings, config, query, system_prompt="", agent=None, today="Date time is not available", weather_data=None): 
     exact_location = settings['exact_location']
 
     if weather_data:
@@ -227,7 +217,7 @@ def streamlit_prepare_execution(mode, settings, config, query, system_prompt="",
         st.map(pd.DataFrame({
             'lat': [exact_location['lat']],
             'lon': [exact_location['lon']]
-        }), height=300)
+        }), height=300, size=100, zoom=12, color=[50, 190, 108, 0.47])
             
     with time_location_col:
         st.subheader("Time and Location")
@@ -259,18 +249,27 @@ def streamlit_prepare_execution(mode, settings, config, query, system_prompt="",
                         label=weather_condition_text,
                         value=f"{max_temperature} / {min_temperature}°F",
                     )
+                    
+    settings_bages = f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['base_location']}]"
+
+    if mode == COLLECTION_MODE:
+        settings_bages += f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
+
+    st.markdown(settings_bages)
+    
+    with st.chat_message("ai"):
+        if mode == COLLECTION_MODE:
+            with st.expander("Data collection prompt", expanded=False):
+                st.write(agent.get_system_prompt(
+                    settings["data_collection_prompt"], config))
+        else:
+            with st.expander("System prompt", expanded=False):
+                st.write(system_prompt)
 
     with st.chat_message("human"):
         with st.expander("Human prompt", expanded=False):
             st.write(query)          
             
-    settings_bages = f":gray-badge[Model: {settings['model']}] :gray-badge[Location: {settings['base_location']}]"
-
-    if mode == COLLECTION_MODE:
-        settings_bages += f":gray-badge[Search limit: {settings['search_limit']}] :gray-badge[Number of results: {settings['number_of_results']}]"
-        
-    st.markdown(settings_bages)
-
 def streamlit_report_execution(result, tools):
     for msg in result["messages"]:
         if isinstance(msg, HumanMessage):
@@ -326,9 +325,14 @@ def streamlit_report_execution(result, tools):
         else:
             st.write(msg)
 
-def streamlit_display_storage(storage, data_ids, group_by=None):
-    # Display stored search results
-    st.subheader(":gray[Affected data]")
+def streamlit_display_storage(storage, data_ids, group_by=None, expand=True):
+    container = st.container()
+    
+    if not expand:
+        container = st.expander("Affected data", expanded=False)
+    else:  
+        container.subheader(":gray[Affected data]")
+
 
     if len(data_ids) < 2: # First record always "Blank"
         st.info("No data available")
@@ -354,7 +358,7 @@ def streamlit_display_storage(storage, data_ids, group_by=None):
     df = df.replace('N/A', None)
     empty_cols = [col for col in cols if df[col].isna().all()]
     if empty_cols:
-        st.info("These columns have no data: " + ", ".join(empty_cols))
+        empty_cols = ", ".join(empty_cols)
     cols = [col for col in cols if not df[col].isna().all()]
 
     if len(cols) < 2:
@@ -377,21 +381,22 @@ def streamlit_display_storage(storage, data_ids, group_by=None):
     df = df.drop(['created_at', 'updated_at'], axis=1)
 
     if len(df) == 0:
-        st.info("No data collected")
+        container.info("No data collected")
         return
     
     # Group by source and display in expandable sections
     if group_by in df.columns:
         for source in df[group_by].unique():
                 source_df = df[df[group_by] == source]
-                with st.expander(f"{group_by}: {source}"):
-                    st.dataframe(source_df.drop(group_by, axis=1),
+                with container.expander(f"{group_by}: {source}"):
+                    container.dataframe(source_df.drop(group_by, axis=1),
                                 use_container_width=True)
         return
     elif group_by:
-        st.error(f"Structure issue: no {group_by} column found")
+        container.error(f"Structure issue: no {group_by} column found")
     
-    st.dataframe(df, use_container_width=True)
+    container.dataframe(df, use_container_width=True)
+    container.info("Hidden columns (no data):\n\n" + empty_cols)
 
 def load_environment():
     load_dotenv()

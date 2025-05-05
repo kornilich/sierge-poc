@@ -17,14 +17,26 @@ Use stored user fixed preferences and contextual preferences to interpret releva
 """
 itinerary_extra_human_prompt = """
 
-At the end of report show list of ids of used activities in JSON format. Example:
+Provide current date and time information along with weather forecast.
 
-used_activities: 
+At the end of report show list of used activities in JSON format. Example:
+
 {
-    "ids": [
-        "id1": "full_address1", 
-        "id2": "full_address2",
-        "id3": "full_address3"
+    "activities": [
+        {
+          "id": "id1",
+          "name": "name1",
+          "full_address": "full_address1", 
+          "longitude": 123.22,
+          "latitude": 456.33,
+        },
+          {
+          "id": "id2",
+          "name": "name2",
+          "full_address": "full_address2", 
+          "longitude": 78.22,
+          "latitude": 90.33,
+        },    
     ]
 }
 """
