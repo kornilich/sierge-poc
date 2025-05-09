@@ -27,17 +27,16 @@ def web_page_data_extraction(url: str):
             "session_options": {"session_options": {"use_proxy": True}},
         }
     )
-    
-    results_info = {
-        "data_source": "hyperbrowser",
-        "search_type": "extraction",
-        "search_url": url,
-        "search_query": "Extract data from web page",
-        "search_results": results["data"]["activities"]
-    }
 
-    return {"search_type": "web_page_data_extraction",
-            "results": results_info}
+    return {
+        "web_page_data_extraction": {
+            "data_source": "hyperbrowser",
+            "search_type": "extraction",
+            "search_url": url,
+            "search_query": "Extract data from web page",
+            "search_results": results["data"]["activities"]
+        }
+    }
 
 @tool("google_organic_search")
 def google_organic_search(query: str, config: RunnableConfig):
