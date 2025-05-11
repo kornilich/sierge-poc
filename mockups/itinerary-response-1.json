@@ -1,0 +1,39 @@
+{
+  "activities": [
+    {
+      "id": "d27da075-a9e1-583b-9db1-50bd363f8d7c",
+      "name": "Dallas Museum of Art",
+      "full_address": "1717 North Harwood Street, Dallas, TX 75201-2315, USA",
+      "longitude": -96.8037689,
+      "latitude": 32.7882592
+    },
+    {
+      "id": "756e01be-5c7f-55c3-a224-821dfc1bd8c2",
+      "name": "The Majestic Theatre",
+      "full_address": "1925 Elm Street, Dallas, TX 75201-4510, USA",
+      "longitude": -96.7950009,
+      "latitude": 32.7828019
+    },
+    {
+      "id": "c6afa380-1007-5b8e-b97b-9c15da132087",
+      "name": "Live Music at The Rustic",
+      "full_address": "The Rustic, 3656 Howell Street, Dallas, TX 75204-3665, USA",
+      "longitude": -96.7942199,
+      "latitude": 32.8049155
+    },
+    {
+      "id": "244741a3-c05c-5982-ae15-d76769834ade",
+      "name": "The Nasher Sculpture Center",
+      "full_address": "2001 Flora Street, Dallas, TX 75201-2336, USA",
+      "longitude": -96.800103,
+      "latitude": 32.7880518
+    },
+    {
+      "id": "12d5ae22-fcfc-546f-9253-1c3118ea8113",
+      "name": "Dallas Symphony Orchestra",
+      "full_address": "2301 Flora Street, Dallas, TX 75201-2413, USA",
+      "longitude": -96.7986786,
+      "latitude": 32.789971
+    }
+  ]
+}

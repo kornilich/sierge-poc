@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 
-from agents.geocoding import PlaceAddressDetails
+from agents.geocoding import PlaceAddressDetails, get_route_plan
 from agents.data_collection_agent import DataCollectionAgent
 from agents.geocoding import get_datetime_info, get_weather_data
 from agents.vector_database import VectorDatabase
@@ -19,7 +19,7 @@ import agents.tools as tools_set
 import agents.prompts as prmt
 
 import streamlit as st
-from streamlit_helper import COLLECTION_MODE, DISCOVERY_MODE, ITINERARY_MODE
+from streamlit_helper import COLLECTION_MODE, DISCOVERY_MODE, ITINERARY_MODE, get_plan_description
 from streamlit_helper import (
     get_streamlit_cb,
     streamlit_settings,
@@ -43,7 +43,7 @@ affected_records = ["Blank"]
 
 load_environment()
 
-settings = streamlit_settings(chat_mode_list, COLLECTION_MODE)
+settings = streamlit_settings(chat_mode_list, ITINERARY_MODE)
 chat_mode = settings["chat_mode"]
 
 vector_store = VectorDatabase(collection_name=settings["base_location"])
@@ -166,27 +166,44 @@ else: # Itinerary mode
             vector_store, affected_records, expand=False)
    
         # Extract used activities IDs from the response     
+        # result = {"messages": [HumanMessage(content="")]}        
+        
         if result.get("messages"):
             last_message = result["messages"][-1].content
 
             # Find JSON content between ```json and ```
             json_match = re.search(r'```json\s*(.*?)\s*```', last_message, re.DOTALL)
             
+            # json_match = True
+            
             if json_match:
                 try:
                     # Parse the JSON content
                     activities_json = json.loads(json_match.group(1))
                     
+                    # activities_json = json.load(open("mockups/itinerary-response-2.json"))
+                    
+                    # Save activities JSON to file
+                    # with open("mockups/itinerary-response-2.json", "w") as f:
+                    #     json.dump(activities_json, f, indent=4)
+                    
+                    # Add starting point
+                    place = PlaceAddressDetails(
+                        name="Start point",
+                        formatted_address=settings["exact_location"]["formatted_address"],
+                        latitude=settings["exact_location"]["lat"],
+                        longitude=settings["exact_location"]["lon"]
+                    )
+                    places = [place]
+
+                                        
                     # Extract activities list if it exists
-                    df = pd.DataFrame(
+                    map_df = pd.DataFrame(
                         np.array([[settings["exact_location"]["lat"], settings["exact_location"]["lon"]]]),
                         columns=["lat", "lon"],
                     )
                     
-                    places_map_param = f"'{settings['exact_location']['lat']},{settings['exact_location']['lon']}'"
-                    
-                    if "activities" in activities_json:
-                        places = []
+                    if "activities" in activities_json:                      
                         for activity in activities_json["activities"]:
                             # Convert each activity to PlaceAddressDetails
                             place = PlaceAddressDetails(
@@ -196,20 +213,45 @@ else: # Itinerary mode
                                 longitude=activity.get("longitude")
                             )
                             
-                            df.loc[len(df)] = [place.latitude, place.longitude]
-                            places_map_param += "/" + quote(place.name + ", " + place.formatted_address)
+                            map_df.loc[len(map_df)] = [place.latitude, place.longitude]
                             places.append(place)
                 except json.JSONDecodeError:
                     st.error("Failed to parse activities JSON")
                 except Exception as e:
                     st.error(f"Error processing activities: {str(e)}")
-                            
-                col1, col2 = st.columns([2,1])
-                with col1:  
-                    st.map(df, height=300)
+                                                
+                st.write("Route plan with original waypoint order")
+                route_plan = get_route_plan(places)
+                                
+                st.json(route_plan, expanded=False)
+        
+                map_waypoints_param, route_df = get_plan_description(places, route_plan['routes'][0])
+                st.dataframe(route_df, use_container_width=True)
+                
+                st.write("Route plan with optimized waypoint order")
+                route_plan = get_route_plan(places, optimize_waypoint_order=True)
+                st.json(route_plan, expanded=False)
+
+                # Rearange places order according to optimized waypoints
+                route = route_plan['routes'][0]
+                
+                new_places = [places[0]]                
+                for idx in route['optimizedIntermediateWaypointIndex']:
+                    new_places.append(places[idx + 1])                    
+                new_places.append(places[-1])
+                
+                map_waypoints_optimized_param, route_df = get_plan_description(
+                    new_places, route)
+                st.dataframe(route_df, use_container_width=True)
+                
+                col1, col2 = st.columns([2, 1])
+                with col1:
+                    st.map(map_df, height=300)
                 with col2:
                     st.link_button(
-                        "Open in Google Maps", f"https://www.google.com/maps/dir/{places_map_param}", type="primary", icon=":material/map:")
+                        "Open original route", f"https://www.google.com/maps/dir/{map_waypoints_param}", type="primary", icon=":material/map:")
+                    st.link_button(
+                        "Open optimized route", f"https://www.google.com/maps/dir/{map_waypoints_optimized_param}", type="primary", icon=":material/map:")
 
     else:
         streamlit_show_home(agent, tools, "Itinerary mode", "itinerary.jpg",

@@ -1,0 +1,32 @@
+{
+    "activities": [
+        {
+            "id": "d27da075-a9e1-583b-9db1-50bd363f8d7c",
+            "name": "Dallas Museum of Art",
+            "full_address": "1717 North Harwood Street, Dallas, TX 75201-2315, USA",
+            "longitude": -96.8037689,
+            "latitude": 32.7882592
+        },
+        {
+            "id": "756e01be-5c7f-55c3-a224-821dfc1bd8c2",
+            "name": "The Majestic Theatre",
+            "full_address": "1925 Elm Street, Dallas, TX 75201-4510, USA",
+            "longitude": -96.7950009,
+            "latitude": 32.7828019
+        },
+        {
+            "id": "1ea82677-29a6-5d5e-bffb-179c79c4faf0",
+            "name": "Art Walk in the Arts District",
+            "full_address": "1717 North Harwood Street, Dallas, TX 75201-2315, USA",
+            "longitude": -96.8037689,
+            "latitude": 32.7882592
+        },
+        {
+            "id": "00022d4a-def0-521b-9e26-731607ff8986",
+            "name": "Fusion Mediterranean Grill & Bar",
+            "full_address": "12835 Preston Road #220, Dallas, TX 75230-1452, USA",
+            "longitude": -96.8046347,
+            "latitude": 32.9243139
+        }
+    ]
+}

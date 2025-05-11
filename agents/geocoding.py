@@ -14,7 +14,6 @@ class PlaceAddressDetails(BaseModel):
     latitude: float 
     longitude: float
 
-
 def get_validated_address(location_str, base_location) -> Optional[PlaceAddressDetails]:
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 
@@ -172,3 +171,75 @@ def get_datetime_info(latitude, longitude):
     datetime_now_info += f"UTC time: {datetime_now_utc.strftime('%Y-%m-%d %H:%M')}"
 
     return datetime_now_info
+
+
+def get_route_plan(places: PlaceAddressDetails, travel_mode="DRIVE", optimize_waypoint_order=False):
+    if len(places) < 2:
+        return None
+
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+
+    try:
+        url = "https://routes.googleapis.com/directions/v2:computeRoutes"
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": api_key,
+            "X-Goog-FieldMask": "routes.legs.distanceMeters,routes.legs.duration,routes.legs.startLocation,routes.legs.endLocation"
+        }        
+        
+        payload = {
+            "origin": {
+                "location": {
+                    "latLng": {
+                        "latitude": places[0].latitude,
+                        "longitude": places[0].longitude
+                    }
+                }
+            },
+            "destination": {
+                "location": {
+                    "latLng": {
+                        "latitude": places[-1].latitude,
+                        "longitude": places[-1].longitude
+                    }
+                }
+            },
+            "travelMode": travel_mode,
+            "routingPreference": "TRAFFIC_AWARE",
+            "computeAlternativeRoutes": False,
+            "routeModifiers": {
+                "avoidTolls": False,
+                "avoidHighways": False,
+                "avoidFerries": False
+            },
+            "languageCode": "en-US",
+            "units": "METRIC"
+        }
+        
+
+        if len(places) >= 3:
+            if optimize_waypoint_order:
+                headers["X-Goog-FieldMask"] += ",routes.optimizedIntermediateWaypointIndex"
+                payload["optimizeWaypointOrder"] = True
+            
+            payload["intermediates"] = [
+                {
+                    "location": {
+                        "latLng": {
+                            "latitude": place.latitude,
+                            "longitude": place.longitude
+                        }
+                    }
+                }
+                for place in places[1:-1]
+            ]
+
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+        return result
+    except Exception as e:
+        logging.error(
+            f"Error fetching address data (get_route_plan): {str(e)}")
+        return None

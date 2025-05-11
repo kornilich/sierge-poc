@@ -1,4 +1,5 @@
 from datetime import datetime
+from urllib.parse import quote
 from dotenv import load_dotenv
 import pandas as pd
 import requests
@@ -394,6 +395,34 @@ def streamlit_display_storage(storage, data_ids, group_by=None, expand=True):
     
     container.dataframe(df, use_container_width=True)
     container.info("Hidden columns (no data):\n\n" + empty_cols)
+
+
+def get_plan_description(places, route):
+    route_df = pd.DataFrame(columns=['name', 'description'])
+    waypoints_param = ""
+
+    for idx, place in enumerate(places):
+        route_df.loc[len(route_df)] = [
+            place.name,
+            place.formatted_address
+        ]
+        
+        if idx == 0:
+            waypoints_param = quote(place.formatted_address)
+        else:
+            waypoints_param += "/" + quote(place.formatted_address)
+
+        if idx < len(places) - 1:  # Skip last place
+            if 'distanceMeters' in route['legs'][idx]:  
+                description = f"{route['legs'][idx]['distanceMeters']} meters, {route['legs'][idx]['duration']}"
+            else:
+                description = f"Next door. {route['legs'][idx]['duration']}"
+            route_df.loc[len(route_df)] = [
+                "[DRIVE]",
+                description
+            ]
+
+    return waypoints_param, route_df
 
 def load_environment():
     load_dotenv()
