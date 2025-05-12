@@ -6,12 +6,18 @@ from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
 from qdrant_client import models
 from qdrant_client.models import Filter, FieldCondition
+from pyuploadcare import Uploadcare
 
 from agents.activities import ActivityDetails
 
 class VectorDatabase:
     def __init__(self, collection_name: str):
         self.collection_name = collection_name
+        
+        self.uploadcare = Uploadcare(
+            public_key=os.environ["UPLOADCARE_PUBLIC_KEY"],
+            secret_key=os.environ["UPLOADCARE_SECRET_KEY"]
+        )
         
         self.client = QdrantClient(
             url=os.environ["QDRANT_URL"],
@@ -83,6 +89,11 @@ class VectorDatabase:
                             existing_activity, field))
             else:
                 activity.id = activity_uuid
+                
+            if activity.image_url:
+                ucare_file = self.uploadcare.upload(activity.image_url, store=True, metadata={
+                                                    "activity_id": f"{activity.id}"})
+                activity.image_url = ucare_file.cdn_url
 
         points = []
         for activity in activities:
@@ -103,8 +114,7 @@ class VectorDatabase:
         except Exception as e:
             logging.error(f"Error upserting activities: {e}")
             raise e
-        
-    
+         
     def get_metrics(self):
         collection = self.client.get_collection(self.collection_name)
         return collection.model_dump()

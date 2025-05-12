@@ -21,15 +21,18 @@ If certain fields lack sufficient data or are unavailable, they will be assigned
     coordinates: Optional[dict] = Field(
         default=None, description="For internal use only.")
     similarity_score: Optional[float] = Field(
-        default=None, description="For internal use only. Similarity score of the activity to the query.")
+        default=None, description="For internal use only. Similarity score of the activity to the vectore store query.")
 
     data_source: Optional[str] = Field(
         default="Model", description="Source of the information. Can be 'Model' or tool name.")
-    category: Optional[str] = Field(default="Other")
+    category: Optional[str] = Field(
+        default="Other", description="Possible values: Live Entertainment, Movies & Film, Museums & Exhibits, Community Events & Activities, Sports & Recreation, Health & Wellness, Learning & Skill-Building, Shopping, Food & Drink Experiences, Self-Guided Activities & Destinations, Other")
     name: Optional[str] = Field(
         default=None, description="Name/Title of the activity (e.g., Event Name, Venue Name, Destination Name).")
     description: Optional[str] = Field(default=None,
                                        description="Brief overview of activity, including cuisine, atmosphere, features and other relevant information")
+    image_url: Optional[str] = Field(
+        default=None, description="URL of the activity image or thumbnail or favicon")
     location: Optional[str] = Field(
         default=None, description="Location details (Address, GPS coordinates, or general area).")
     website: Optional[str] = Field(

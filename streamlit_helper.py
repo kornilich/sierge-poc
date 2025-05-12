@@ -12,7 +12,7 @@ from streamlit.external.langchain import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, ToolMessage
 from typing import TypeVar, Callable
-from agents.geocoding import get_location_from_string
+from integrations.geocoding import get_location_from_string
 import agents.prompts as prmt
 import json
 
@@ -430,14 +430,19 @@ def load_environment():
     # Set environment variables from streamlit secrets
     os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
     os.environ["SERPAPI_KEY"] = st.secrets["SERPAPI_KEY"]
+    
     os.environ["LANGSMITH_TRACING"] = st.secrets["LANGSMITH_TRACING"]
     os.environ["LANGSMITH_ENDPOINT"] = st.secrets["LANGSMITH_ENDPOINT"]
     os.environ["LANGSMITH_API_KEY"] = st.secrets["LANGSMITH_API_KEY"]
     os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
-    # os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
-    # os.environ["PINECONE_INDEX"] = st.secrets["PINECONE_INDEX"]
+
     os.environ["QDRANT_API_KEY"] = st.secrets["QDRANT_API_KEY"]
     os.environ["QDRANT_URL"] = st.secrets["QDRANT_URL"]
+    
     os.environ["GOOGLE_MAPS_API_KEY"] = st.secrets["GOOGLE_MAPS_API_KEY"]
     os.environ["HYPERBROWSER_API_KEY"] = st.secrets["HYPERBROWSER_API_KEY"]
+    
+    os.environ["UPLOADCARE_PUBLIC_KEY"] = st.secrets["UPLOADCARE_PUBLIC_KEY"]
+    os.environ["UPLOADCARE_SECRET_KEY"] = st.secrets["UPLOADCARE_SECRET_KEY"]
+    
     return

@@ -6,15 +6,41 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import InjectedStore
 from typing import List, Dict, Annotated
 
-from agents.geocoding import get_place_address, get_validated_address
-from agents.vector_database import VectorDatabase
+from integrations.geocoding import get_place_address, get_validated_address
+from integrations.vector_database import VectorDatabase
 from agents.activities import ActivitiesList, ActivityDetails
-from uule_convertor import UuleConverter
+from integrations.uule_convertor import UuleConverter
 
 from langchain_hyperbrowser import HyperbrowserExtractTool
 
 # check this page https://blog.offerpad.com/things-to-do-dallas-tx
 # check this page https://www.visitdallas.com
+# use google_organic_search to find dallas kids center
+# use google_organic_search to find dallas great pub
+# use google_organic_search dallas city center museums
+# use google_organic_search outdoor live events dallas <-- shopping_results
+# use google_event find nice events
+# use google_local find nice events <-- ads_results, local_results
+
+def __set_image_url(places_list):
+    for place in places_list:
+        place["image_url"] = __extract_image_url(place)
+
+def __extract_image_url(place):
+    image = place.get("image")
+    if image:
+        return image
+
+    thumbnail = place.get("thumbnail")
+    if thumbnail:
+        return thumbnail
+
+    favicon = place.get("favicon")
+    if favicon:
+        return favicon
+
+    return None
+
 @tool("web_page_data_extraction")
 def web_page_data_extraction(url: str):
     """
@@ -51,19 +77,38 @@ Can also be used to augment more 'general' knowledge to a previous specialist qu
 
     result_types = [
         "organic_results",
-        "local_results",
+        "shopping_results",
         "local_ads",
         "knowledge_graph",
-        "discover_more_places",
-        "events_results",
         "top_sights",
         "showtimes",
     ]
-
+        
     results = serpapi_search(query, "google", config, result_types)
     #  , mock_file = "mockups/serpapi-1.json")
 
-    return results
+    try:
+        for result_type, result_descriptor in results.items():
+            if result_type in ["knowledge_graph"]:
+                place = result_descriptor["search_results"]
+                place["image_url"] = __extract_image_url(place)
+            
+        if result_type in ["organic_results", "local_ads", "shopping_results"]:
+            places_list = result_descriptor["search_results"]
+            __set_image_url(places_list)
+                
+        if result_type in ["top_sights"]:
+            places_list = result_descriptor["search_results"]["sights"]
+            __set_image_url(places_list)
+
+        if result_type in ["local_ads"]:
+            places_list = result_descriptor["search_results"]["ads"]
+            __set_image_url(places_list)
+    except Exception as e:
+        print(f"Error: {e}")
+        return results
+                
+    return results              
 
 @tool("google_events_search")
 def google_events_search(query: str, config: RunnableConfig):
@@ -81,6 +126,11 @@ and other activities based on your query"""
 
     results = serpapi_search(query, "google_events", config, result_types)
     #  , mock_file = "mockups/serpapi-events-1.json")
+
+    for result_type, result_descriptor in results.items():
+        if result_type in ["events_results"]:
+            places_list = result_descriptor["search_results"]
+            __set_image_url(places_list)
 
     return results
 
@@ -101,11 +151,15 @@ Use it to find following categories:
     result_types = [
         "ads_results",
         "local_results",
-        "discover_more_places",
     ]
 
     results = serpapi_search(query, "google_local", config, result_types)
     #  , mock_file = "mockups/serpapi-locals-1.json")
+
+    for result_type, result_descriptor in results.items():
+        if result_type in ["local_results", "ads_results"]:
+            places_list = result_descriptor["search_results"]
+            __set_image_url(places_list)
 
     return results
 
@@ -130,12 +184,16 @@ def yelp_search(query: str, config: RunnableConfig):
 
     results = serpapi_search(query, "yelp", config, result_types, extra_params)
     #  , mock_file = "mockups/serpapi-locals-1.json")
+    
+    for result_type, result_descriptor in results.items():
+        if result_type in ["organic_results", "ads_results"]:
+            places_list = result_descriptor["search_results"]
+            __set_image_url(places_list)
 
     return results
 
 def serpapi_search(query: str, engine: str, config: RunnableConfig, result_types: List[str] = None, extra_params: Dict[str, str] = None, mock_file: str = None):
     # TODO: Consider use pagination together with number of results
-
 
     cfg = config.get("configurable", {})
     params = {

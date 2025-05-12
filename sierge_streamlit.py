@@ -11,10 +11,10 @@ import numpy as np
 import pandas as pd
 
 
-from agents.geocoding import PlaceAddressDetails, get_route_plan
+from integrations.geocoding import PlaceAddressDetails, get_route_plan
 from agents.data_collection_agent import DataCollectionAgent
-from agents.geocoding import get_datetime_info, get_weather_data
-from agents.vector_database import VectorDatabase
+from integrations.geocoding import get_datetime_info, get_weather_data
+from integrations.vector_database import VectorDatabase
 import agents.tools as tools_set
 import agents.prompts as prmt
 
@@ -37,13 +37,12 @@ chat_mode_list = [COLLECTION_MODE, DISCOVERY_MODE, ITINERARY_MODE]
 if "memory" not in st.session_state:
     st.session_state.memory = InMemorySaver()
 
-
 # HACK: Keep this to preserve var in runnable config, otherwise it will be removed
 affected_records = ["Blank"]
 
 load_environment()
 
-settings = streamlit_settings(chat_mode_list, ITINERARY_MODE)
+settings = streamlit_settings(chat_mode_list, COLLECTION_MODE)
 chat_mode = settings["chat_mode"]
 
 vector_store = VectorDatabase(collection_name=settings["base_location"])
@@ -61,7 +60,7 @@ if chat_mode == COLLECTION_MODE:
 
     tools = [tools_set.save_results, tools_set.google_organic_search,
              tools_set.google_events_search, tools_set.google_local_search, tools_set.yelp_search, tools_set.web_page_data_extraction]
-    # tools = [tools_set.save_results, tools_set.web_page_data_extraction]
+    # tools = [tools_set.save_results, tools_set.yelp_search]
 
     agent = DataCollectionAgent(vector_store, tools, settings)
     agent.setup()

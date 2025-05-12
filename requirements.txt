@@ -17,3 +17,5 @@ googlemaps
 qdrant-client
 langchain-qdrant
 langchain-hyperbrowser
+
+pyuploadcare
