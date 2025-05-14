@@ -66,8 +66,9 @@ class VectorDatabase:
             # TODO: Consider using local embeddings like FastEmbed instead of OpenAI API calls
             
             # Generate ID based on name and full_address
+            composite_id = (activity.name or '') + (activity.full_address or '')
             activity_uuid = str(uuid.uuid5(
-                uuid.NAMESPACE_URL, (activity.name + activity.full_address).lower()))
+                uuid.NAMESPACE_URL, composite_id.lower()))
             # TODO: Can be optimized by calling once before the loop
             existing_activities = self.get_by_ids([activity_uuid])
             
