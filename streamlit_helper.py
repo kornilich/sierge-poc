@@ -15,8 +15,7 @@ from typing import TypeVar, Callable
 from integrations.geocoding import get_location_from_string
 import agents.prompts as prmt
 import json
-
-from langchain_core.runnables.graph import NodeStyles
+from langchain_core.runnables.graph import NodeStyles, MermaidDrawMethod
 
 
 COLLECTION_MODE = "Collection"
@@ -183,8 +182,6 @@ def streamlit_show_home(agent, tools, title, image_name, description, hide_diagr
         last='fill-opacity:0',
     )
     
-    img = agent.get_graph().draw_mermaid_png(node_colors=node_styles)
-
     def _list_tools():
         st.subheader(":gray[Tools]")
         st.write("Tool name and instructions for the agent on when and how using it")
@@ -194,6 +191,9 @@ def streamlit_show_home(agent, tools, title, image_name, description, hide_diagr
     if hide_diagram:
         _list_tools()
     else: 
+        img = agent.get_graph().draw_mermaid_png(node_colors=node_styles,
+                                                 draw_method=MermaidDrawMethod.PYPPETEER)
+
         col1, col2 = st.columns([1, 2])
 
         with col1:

@@ -117,7 +117,7 @@ elif chat_mode == DISCOVERY_MODE:
         streamlit_display_storage(vector_store, affected_records)
     else:
         streamlit_show_home(agent, tools, "Discovery mode", "qdrant-logo.png",
-                                    "Query the cached database (vector store) for existing information")
+                                    "Query the cached database (vector store) for existing information", hide_diagram=True)
 else: # Itinerary mode        
     model = ChatOpenAI(model="gpt-4o", temperature=0)
     tools = [tools_set.vector_store_search, tools_set.vector_store_metrics]
@@ -205,11 +205,18 @@ else: # Itinerary mode
                     if "activities" in activities_json:                      
                         for activity in activities_json["activities"]:
                             # Convert each activity to PlaceAddressDetails
+                            lat = activity.get("latitude")
+                            lon = activity.get("longitude")
+                            
+                            if lat is None or lon is None:
+                                lat = settings["exact_location"]["lat"]
+                                lon = settings["exact_location"]["lon"]
+                            
                             place = PlaceAddressDetails(
                                 name=activity.get("name"),
                                 formatted_address=activity.get("full_address"),
-                                latitude=activity.get("latitude"),
-                                longitude=activity.get("longitude")
+                                latitude=lat,
+                                longitude=lon
                             )
                             
                             map_df.loc[len(map_df)] = [place.latitude, place.longitude]
@@ -254,4 +261,4 @@ else: # Itinerary mode
 
     else:
         streamlit_show_home(agent, tools, "Itinerary mode", "itinerary.jpg",
-                                    "Itinerary generation based on user preferences and query. AI uses cached database (vector store) to generate itinerary.")
+                                    "Itinerary generation based on user preferences and query. AI uses cached database (vector store) to generate itinerary.", hide_diagram=True)

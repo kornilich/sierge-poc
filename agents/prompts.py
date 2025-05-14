@@ -29,10 +29,9 @@ Recomended plan results should be in the form of a table with columns:
 Column 1: Start time
 Column 2: Type
 Type values could be (Meal, Indoor, Outdoor) 
-Column 3: Name, start_time, end_time
-if no info about start_time put "Start time: N/A"
-Column 4: Duration, time_of_operation
-if no info about time_of_operation, put "Hours: 8/5"
+Image from image_url field of the activity 
+Column 3: Name
+Column 4: Duration
 Duration format example: 1.5h
 Column 5: Description, Weather 
 Show weather condition if outdoor type only
@@ -61,6 +60,7 @@ Resulting output sturture must be following:
           "full_address": "full_address1", 
           "longitude": 123.22,
           "latitude": 456.33,
+          "image_url": "image_url1",
         },
           {
           "id": "id2",
@@ -68,6 +68,7 @@ Resulting output sturture must be following:
           "full_address": "full_address2", 
           "longitude": 78.22,
           "latitude": 90.33,
+          "image_url": "image_url2",
         },    
     ]
 }

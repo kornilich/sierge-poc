@@ -19,3 +19,4 @@ langchain-qdrant
 langchain-hyperbrowser
 
 pyuploadcare
+pyppeteer

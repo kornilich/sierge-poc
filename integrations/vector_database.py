@@ -66,9 +66,8 @@ class VectorDatabase:
             # TODO: Consider using local embeddings like FastEmbed instead of OpenAI API calls
             
             # Generate ID based on name and full_address
-            activity_uuid = uuid.uuid5(
-                uuid.NAMESPACE_URL, (activity.name + activity.full_address).lower())
-                        
+            activity_uuid = str(uuid.uuid5(
+                uuid.NAMESPACE_URL, (activity.name + activity.full_address).lower()))
             # TODO: Can be optimized by calling once before the loop
             existing_activities = self.get_by_ids([activity_uuid])
             
@@ -91,9 +90,13 @@ class VectorDatabase:
                 activity.id = activity_uuid
                 
             if activity.image_url:
-                ucare_file = self.uploadcare.upload(activity.image_url, store=True, metadata={
+                try:
+                    ucare_file = self.uploadcare.upload(activity.image_url, store=True, metadata={
                                                     "activity_id": f"{activity.id}"})
-                activity.image_url = ucare_file.cdn_url
+                    activity.image_url = ucare_file.cdn_url
+                except Exception as e:
+                    logging.error(f"Error uploading image: {e}")
+                    activity.image_url = None
 
         points = []
         for activity in activities:
