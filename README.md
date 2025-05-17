@@ -6,14 +6,20 @@ A simple Streamlit app template for you to modify!
 
 ### How to run it on your own machine
 
-1. Install the requirements
+1. Install UV
 
-   ```
-   $ pip install -r requirements.txt
+   ```bash
+   curl -Ls https://astral.sh/uv/install.sh | sh
    ```
 
-2. Run the app
+2. Install the requirements
 
+   ```bash
+   uv pip install -e .
    ```
+
+3. Run the app
+
+   ```bash
    $ streamlit run streamlit_app.py
    ```
